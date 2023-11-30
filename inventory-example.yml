@@ -1,0 +1,64 @@
+---
+
+ungrouped:
+  vars:
+    ansible_connection: ssh
+    ansible_user: "{{ default_ansible_user }}"
+  hosts:
+    <host-alias>: <ip-adress>
+
+wp_hosts:
+  #Default vales for host vars should be used if a value is not specified 
+  #below. See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets.yml
+
+  #site vars which may be set
+  #- domain: your.domain.com
+  #  port: <port-number-used-by-docker>
+  #  id: <a-unique-id-for-site>
+  #  wp_settings:
+  #    wp_cli_image: <docker-image-to-use-for-wp-cli>
+  #    db_user: <database-user>
+  #    db_user_password: <database-password>
+  #    db_root_password: <database-root-password>
+  #    db_name: <database-name>
+  #    backup_restore_snapshot_id: <snapshot-id-or-latest>
+  #    perform_backup: <should-we-backup>
+  #    htaccess: <extra-settings-to-put-in-.htaccess-file, for example to 
+  #      allow max file upload sizes of 500M
+  #    htaccess: |
+  #      php_value upload_max_filesize 500M
+  #      php_value post_max_size 500M>
+  #
+  #    initial:
+  #      title: <initial-site-title>
+  #      admin_user: <wp-admin-user-name>
+  #      admin_password: <wp-admin-password>
+  #      admin_email: <wp-admin-email>
+  #    config:
+  #      dissallow_file_mods: <disallow-theme-and-plugin-installation>
+  #      auto_update_core: <auto-update-wp-core>
+  #      force_ssl_admin: <force-admin-to-use-ssl>
+  #    themes: <list-of-theme-names-to-ensure-are-installed>
+  #    plugins: <list-of-plugin-names-to-ensure-are-installed>
+
+  hosts:
+    <host-alias>:
+      sites:
+        - domain: "your.domain.com"
+          port: 8080
+          id: unique_site_id
+          wp_settings:
+            themes:
+              - <a-name-of-a-theme-you-want>
+              - <a-name-of-another-theme-you-want>
+            plugins:
+              - <a-name-of-a-plugin-you-want>
+              - <a-name-of-another-plugin-you-want>
+        - domain: "your.second.domain.com"
+          port: 8081
+          id: unique_site_id_2
+          wp_settings:
+            backup_restore_snapshot_id: latest
+            perform_backup: false
+            initial:
+              title: "Site 2 title"

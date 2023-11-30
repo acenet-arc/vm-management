@@ -1,0 +1,26 @@
+---
+
+- hosts: wp_hosts
+  become: true
+  become_method: sudo
+  gather_facts: false
+
+  tasks:
+
+    - name: "Backup Wordpress sites"
+      ansible.builtin.include_tasks:
+        file: wp_backup_site.yml
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"
+
+    - name: "Update Wordpress sites"
+      ansible.builtin.include_tasks:
+        file: wp_update_site.yml
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"

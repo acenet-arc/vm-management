@@ -1,0 +1,92 @@
+- name: "Get list of themes installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp theme list --format=json --fields=name,status
+  register: theme_list_result
+  failed_when: false
+  changed_when: false
+
+# TODO: the number of tasks below to manipulate the output could likely be
+# reduced by using the map filter
+
+#- ansible.builtin.debug:
+#    msg: "theme_list_result: {{ theme_list_result }}"
+
+- ansible.builtin.set_fact:
+    theme_list: "{{ theme_list_result.stdout | from_json }}"
+#- ansible.builtin.debug:
+#    msg: "theme_list: {{ theme_list }}"
+
+- ansible.builtin.set_fact:
+    theme_dict_by_name: "{{ theme_list | items2dict('name','status') }}"
+#- ansible.builtin.debug:
+#    msg: "theme_dict_by_name: {{ theme_dict_by_name }}"
+
+- ansible.builtin.set_fact:
+    theme_dict_by_status: "{{ theme_list | items2dict('status','name') }}"
+#- ansible.builtin.debug:
+#    msg: "theme_dict_by_status: {{ theme_dict_by_status }}"
+
+- ansible.builtin.set_fact:
+    theme_name_list: "{{ theme_dict_by_name.keys()|list }}"
+#- ansible.builtin.debug:
+#    msg: "theme_name_list: {{ theme_name_list }}"
+
+- ansible.builtin.set_fact:
+    active_theme_name: 
+
+- ansible.builtin.set_fact:
+    active_theme_name: "{{ theme_dict_by_status['active'] }}"
+  when: "'active' in theme_dict_by_status"
+#- ansible.builtin.debug:
+#    msg: "active_theme_name: {{ active_theme_name }}"
+
+- name: "Install specified themes not installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp theme install {{ theme_name }}
+  loop: "{{ site.wp_settings.themes }}"
+  loop_control:
+    loop_var: theme_name
+  when: not theme_name in theme_name_list
+
+- name: "Ensure active theme is not one which needs to be removed"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp theme activate {{ site.wp_settings.themes[0] }}
+  when: (not active_theme_name in site.wp_settings.themes) and
+    active_theme_name != None
+
+- name: "Remove unspecified themes on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp theme delete {{ theme_name }}
+  loop: "{{ theme_name_list }}"
+  loop_control:
+    loop_var: theme_name
+  when: not theme_name in site.wp_settings.themes
+  

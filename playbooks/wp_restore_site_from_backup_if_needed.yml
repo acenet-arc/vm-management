@@ -1,0 +1,105 @@
+---
+
+- name: "Check if there is a site directory"
+  ansible.builtin.stat:
+    path: "./{{ site.id }}"
+  register: file
+
+- name: "Check if there is a backup for site {{ site.id }}"
+  ansible.builtin.command: >
+    restic -r "{{ restic_backup_url }}" --tag "{{ site.id }}" --verbose 
+    snapshots --json
+  environment:
+    RESTIC_PASSWORD: "{{ restic_backup_repo_password }}"
+    AWS_ACCESS_KEY_ID: "{{ object_store_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ object_store_access_key }}"
+  when: (not file.stat.exists) or (site.wp_settings.backup_restore_snapshot_id is defined)
+  register: snapshotlist_result
+  failed_when: false
+  changed_when: false
+  
+- name: "Parse backup snapshot list output into list"
+  ansible.builtin.set_fact:
+    snapshotlist: "{{ snapshotlist_result.stdout| ansible.builtin.from_json | map(attribute='short_id')}}"
+  when: (not file.stat.exists) or (site.wp_settings.backup_restore_snapshot_id is defined)
+
+- name: "Display snapshot list"
+  ansible.builtin.debug:
+    msg: "snapshotlist={{ snapshotlist }}"
+  when: snapshotlist is defined
+
+- name: "Checking if we should restore from backup because of a missing site directory"
+  ansible.builtin.set_fact:
+    to_restore_missing: "{{ (not file.stat.exists and (snapshotlist|length>0) ) }}"
+
+- name: "Initializing to_restore_requested to false"
+  ansible.builtin.set_fact:
+    to_restore_requested: false
+
+- name: "Checking if we should restore because of an explicitly set backup_restore_snapshot_id"
+  ansible.builtin.set_fact:
+    to_restore_requested: "{{ 
+    ( site.wp_settings.backup_restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
+    (site.wp_settings.backup_restore_snapshot_id in snapshotlist) }}"
+  when: site.wp_settings.backup_restore_snapshot_id is defined
+
+- name: "Checking if we need to restore from backup"
+  ansible.builtin.set_fact:
+    to_restore: "{{ to_restore_missing or to_restore_requested }}"
+
+- name: "Initialize snapshot_to_restore to 'latest'"
+  ansible.builtin.set_fact:
+    snapshot_to_restore: 'latest'
+  when: to_restore_missing or to_restore_requested
+
+- name: "Set snapshot_to_restore to specific ID"
+  ansible.builtin.set_fact:
+    snapshot_to_restore: "{{ site.wp_settings.backup_restore_snapshot_id }}"
+  when: to_restore_requested and (site.wp_settings.backup_restore_snapshot_id in snapshotlist)
+
+- name: "Verify requested backup_restore_snapshot_id in list of snapshots"
+  ansible.builtin.fail:
+    msg: "Requested backup_restore_snapshot_id={{ site.wp_settings.backup_restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
+  when: to_restore_requested and 
+    (site.wp_settings.backup_restore_snapshot_id!='latest') and
+    (not (site.wp_settings.backup_restore_snapshot_id in snapshotlist))
+
+- name: "Are we restoring from a backup?"
+  ansible.builtin.debug:
+    msg: "to_restore={{ to_restore }}"
+
+- name: "Snapshot to restore"
+  ansible.builtin.debug:
+    msg: "snapshot_to_restore={{ snapshot_to_restore }}"
+  when: to_restore
+
+- name: "Remove {{ site.id }}'s directory for clean restore"
+  ansible.builtin.file:
+    path: "./{{ site.id }}"
+    state: absent
+  when: to_restore
+
+- name: "Restore site, {{ site.id }}"
+  ansible.builtin.command: >
+    time restic -r "{{ restic_backup_url }}" --verbose 
+    restore --tag "{{ site.id }}" --target ./ "{{ snapshot_to_restore }}"
+  environment:
+    RESTIC_PASSWORD: "{{ restic_backup_repo_password }}"
+    AWS_ACCESS_KEY_ID: "{{ object_store_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ object_store_access_key }}"
+  when: to_restore
+#  register: restore_results
+
+#- name: "Display restore results"
+#  ansible.builtin.debug:
+#    msg: "restore_results={{ restore_results }}"
+
+- name: "Recored that site wasn't restored"
+  ansible.builtin.set_fact:
+    restored: "{{ restored|default({}) | ansible.builtin.combine({site.id:false}) }}"
+  when: not to_restore
+
+- name: "Recored that site was restored to load database dump later"
+  ansible.builtin.set_fact:
+    restored: "{{ restored|default({}) | ansible.builtin.combine({site.id:true}) }}"
+  when: to_restore

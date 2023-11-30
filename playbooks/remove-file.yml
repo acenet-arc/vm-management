@@ -1,0 +1,8 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Removes file
+      file:
+        path: ${HOME}/test-file.txt
+        state: absent

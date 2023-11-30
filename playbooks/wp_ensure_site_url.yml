@@ -1,0 +1,43 @@
+---
+
+- name: "Check {{ site.id }}'s URL"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp option get siteurl
+  register: site_url_result
+  failed_when: false
+  changed_when: false
+
+#- name: "Check {{ site.id }}'s URL result"
+#  ansible.builtin.debug:
+#    msg: "{{ site_url_result }}"
+
+- name: "Update {{ site.id }}'s URL"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp option update siteurl "https://{{ site.domain }}"
+  when: site_url_result.stdout!="https://"~site.domain
+- name: "Update {{ site.id }}'s URL"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp option update home "https://{{ site.domain }}"
+  when: site_url_result.stdout!="https://"~site.domain
+

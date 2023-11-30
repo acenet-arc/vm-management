@@ -1,0 +1,12 @@
+---
+
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: "Read authorized_keys"
+      shell: |
+        cat ${HOME}/.ssh/authorized_keys
+      register: file_content
+    - name: "Print authorized_keys file"
+      debug:
+        msg: "{{file_content.stdout}}"

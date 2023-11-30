@@ -1,0 +1,16 @@
+---
+
+#TODO: If I stop creating password file on remote, I don't need this file
+
+- name: "Check if file exists"
+  ansible.builtin.stat:
+    path: "{{ path }}"
+  register: file
+
+- name: "Create new file"
+  ansible.builtin.copy:
+    dest: "{{ path }}"
+    content: "{{ content }}"
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+  when: not file.stat.exists

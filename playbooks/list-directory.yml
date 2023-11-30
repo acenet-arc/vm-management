@@ -1,0 +1,15 @@
+---
+
+- hosts: all
+  gather_facts: no
+  vars: 
+    directory: "~/.ssh/"
+
+  tasks:
+    - name: Get directory listing
+      find:
+        path: "{{directory}}"
+      register: directory_listing
+    - name: Print directory listing
+      debug:
+        msg: "{{directory_listing}}"

@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Copy file to remote 
+      ansible.builtin.copy:
+        remote_src: false
+        src: ../files/test-file.txt
+        dest: ${HOME}/test-file.txt

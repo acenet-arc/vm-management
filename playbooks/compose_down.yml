@@ -1,0 +1,2 @@
+- name:  "Bring compose project, {{ project_id }}, down"
+  ansible.builtin.command: docker compose -p {{ project_id }} --env-file {{ project_id }}/.env down

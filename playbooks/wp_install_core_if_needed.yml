@@ -1,0 +1,37 @@
+- name: "Check if Wordpress core already installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp core is-installed
+  register: core_is_installed_result
+  failed_when: false
+  changed_when: false
+
+- name: "Set fact core_is_installed for site, {{ site.id }}"
+  ansible.builtin.set_fact:
+    core_is_installed: "{{ core_is_installed_result.rc==0 }}"
+
+#- ansible.builtin.debug:
+#    msg: "core_is_installed={{ core_is_installed }}"
+
+- name: "Install Wordpress core on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp core install
+    --title="{{ site.wp_settings.initial.title | default(default_initial_site_title) }}"
+    --admin_user="{{ site.wp_settings.initial.admin_user | default(default_admin_user) }}"
+    --admin_password="{{ site.wp_settings.initial.admin_password | default(default_admin_password) }}"
+    --admin_email="{{ site.wp_settings.initial.admin_email | default(default_admin_email) }}"
+    --url="https://{{ site.domain }}"
+  when: not core_is_installed

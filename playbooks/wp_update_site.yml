@@ -1,0 +1,54 @@
+---
+
+#TODO: properly determine if something has actually changed
+# on these tasks, how hard would that be? Currently I just run updates every time
+# which means the sites go down then up as I restart containers, sometimes maybe
+# even when I don't need to.
+
+- name: "Update Wordpress Core on {{ site.id }} site"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp core update
+
+- name: "Update Wordpress database on {{ site.id }} site"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp core update-db
+
+- name: "Update Wordpress themes on {{ site.id }} site"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp theme update --all
+
+- name: "Update Wordpress plugins on {{ site.id }} site"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp plugin update --all
+
+- name: "Update containers"
+  ansible.builtin.include_tasks:
+    file: compose_update.yml

@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+
+  wp:
+    #image: wordpress:5.0
+    image: wordpress
+    restart: always
+    ports:
+      - ${LOCAL_PORT}:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISALLOW_FILE_MODS',${WORDPRESS_DISSALLOW_FILE_MODS});
+        define('WP_AUTO_UPDATE_CORE',${WORDPRESS_AUTO_UPDATE_CORE});
+        define('FORCE_SSL_ADMIN', ${WORDPRESS_FORCE_SSL_ADMIN});
+    volumes:
+      - wp:/var/www/html
+    #secrets:
+    #  - db_passwrd
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    #image: mysql:5.7
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db:/var/lib/mysql
+    #secrets:
+    #  - db_passwrd
+    #  - db_root_passwrd
+    healthcheck:
+      #test:  "mysql -uexampleuser -p`cat /run/secrets/db_passwrd` exampledb -e\"show tables;\""
+      test:  "mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e\"show tables;\""
+      timeout: 30s
+      retries: 100
+
+volumes:
+  wp:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/wp
+  db:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/db
+
+#secrets:
+#  db_passwrd:
+#    file: ./${SITE_NAME}/db_user_password
+#  db_root_passwrd:
+#    file: ./${SITE_NAME}/db_root_password

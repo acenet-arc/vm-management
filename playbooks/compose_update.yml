@@ -1,0 +1,13 @@
+- name:  "Get new container images for compose project {{ site.id }}"
+  ansible.builtin.command: docker compose -p {{ site.id }} --env-file {{ site.id }}/.env pull
+
+- name:  "Restart containers as needed for compose project {{ site.id }}"
+  ansible.builtin.command: docker compose -p {{ site.id }} --env-file {{ site.id }}/.env up -d
+  environment:
+    WORDPRESS_DB_USER: "{{ site.wp_settings.db_user | default(default_db_user) }}"
+    MYSQL_USER: "{{ site.wp_settings.db_user | default(default_db_user) }}"
+    WORDPRESS_DB_PASSWORD: "{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    MYSQL_PASSWORD: "{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    WORDPRESS_DB_NAME: "{{ site.wp_settings.db_name | default(default_db_name) }}"
+    MYSQL_DATABASE: "{{ site.wp_settings.db_name | default(default_db_name) }}"
+    MYSQL_ROOT_PASSWORD: "{{ site.wp_settings.db_root_password | default(default_db_root_password) }}"

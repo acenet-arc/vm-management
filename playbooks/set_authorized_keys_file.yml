@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Copy file to remote
+      ansible.builtin.copy:
+        mode: '0600'
+        src: "authorized_keys"
+        dest: ${HOME}/.ssh/authorized_keys

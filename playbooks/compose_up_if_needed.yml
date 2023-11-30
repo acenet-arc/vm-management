@@ -1,0 +1,44 @@
+- name: "Get compose statuses"
+  ansible.builtin.command: docker compose ls --format json --filter name="^{{ site.id }}$"
+  register: compose_ls
+  changed_when: false
+
+- name: "Initialize statuses dictionary to empty dictionary"
+  ansible.builtin.set_fact:
+    statuses: "{{ {} }}"
+
+- name: "Parse compose status output"
+  ansible.builtin.set_fact:
+    statuses: "{{ statuses|combine({
+      compose_item.Name:{'status':compose_item.Status}
+      }) }}"
+  loop: "{{ compose_ls.stdout }}"
+  loop_control:
+    loop_var: compose_item
+
+- name: "Initialize needs_up to true"
+  ansible.builtin.set_fact:
+    needs_up: true
+
+#- ansible.builtin.debug:
+#    msg: "site.id={{ site.id }} statuses={{ statuses }}"
+
+- name: "If compose project, {{ site.id }}, had a status, check that it is running"
+  ansible.builtin.set_fact:
+    needs_up: "{{ statuses[site.id].status !='running(2)' }}"
+  when: site.id in statuses
+
+#- ansible.builtin.debug:
+#    msg: "needs_up={{ needs_up }}"
+
+- name:  "Bring compose project, {{ site.id }}, up if not already up"
+  ansible.builtin.command: docker compose -p {{ site.id }} --env-file {{ site.id }}/.env up -d
+  environment:
+    WORDPRESS_DB_USER: "{{ site.wp_settings.db_user | default(default_db_user) }}"
+    MYSQL_USER: "{{ site.wp_settings.db_user | default(default_db_user) }}"
+    WORDPRESS_DB_PASSWORD: "{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    MYSQL_PASSWORD: "{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    WORDPRESS_DB_NAME: "{{ site.wp_settings.db_name | default(default_db_name) }}"
+    MYSQL_DATABASE: "{{ site.wp_settings.db_name | default(default_db_name) }}"
+    MYSQL_ROOT_PASSWORD: "{{ site.wp_settings.db_root_password | default(default_db_root_password) }}"
+  when: needs_up

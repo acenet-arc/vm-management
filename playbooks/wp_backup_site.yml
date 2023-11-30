@@ -1,0 +1,30 @@
+---
+
+- name: "Dump {{ site.id }}'s database"
+  ansible.builtin.shell: >
+    docker exec -i -e MYSQL_ROOT_PASSWORD "{{ site.id }}"-db-1 sh -c
+    'mysqldump --all-databases -uroot -p$MYSQL_ROOT_PASSWORD' > 
+    ./"{{ site.id }}"/all-databases.sq
+  environment:
+    MYSQL_ROOT_PASSWORD: "{{ site.wp_settings.db_root_password | default(default_db_root_password) }}"
+
+- name: "Set {{ site.id }}'s database dump's owner"
+  ansible.builtin.file:
+    path: "./{{ site.id }}/all-databases.sq"
+    owner: "{{ default_ansible_user }}"
+    group: "{{ default_ansible_user }}"
+    state: file
+
+- name: "Backup site, {{ site.id }}"
+  ansible.builtin.command: >
+    time restic -r "{{ restic_backup_url }}" --tag "{{ site.id }}" --verbose 
+    backup "./{{ site.id }}" --exclude="./{{ site.id }}/volumes/db"
+  environment:
+    RESTIC_PASSWORD: "{{ restic_backup_repo_password }}"
+    AWS_ACCESS_KEY_ID: "{{ object_store_access_key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ object_store_access_key }}"
+#  register: backup_results
+
+#- name: "Display backup results"
+#  ansible.builtin.debug:
+#    msg: "backup_results={{ backup_results }}"

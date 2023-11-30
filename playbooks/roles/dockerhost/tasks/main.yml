@@ -1,0 +1,107 @@
+---
+- name: "Set extra vhosts params"
+  ansible.builtin.set_fact:
+    extra_vhost_parameters: |
+      RewriteEngine On
+      RewriteCond %{HTTPS} off
+      RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
+- name: "Create vhosts settings from host's sites variable"
+  ansible.builtin.set_fact:
+    vhosts_mine: "{{ vhosts_mine|default([]) + [{
+      'servername':item.domain,
+      'documentroot':'/var/www/html',
+      'extra_parameters': extra_vhost_parameters
+      }] }}"
+  loop: "{{ sites }}"
+  loop_control:
+    label: "{{ item.id }}"
+- name: "Create vhosts_ssl settings from host's sites variable"
+  ansible.builtin.set_fact:
+    vhosts_ssl_mine: "{{ vhosts_ssl_mine|default([]) + [{
+      'servername': item.domain,
+      'documentroot': '/var/www/html',
+      'certificate_file': '/etc/letsencrypt/live/'~item.domain~'/fullchain.pem',
+      'certificate_key_file': '/etc/letsencrypt/live/'~item.domain~'/privkey.pem',
+      'extra_parameters': 'ProxyPreserveHost On\nProxyPass / http://0.0.0.0:'~item.port~'/\nProxyPassReverse / http://0.0.0.0:'~item.port~'/'
+      }] }}"
+  loop: "{{ sites }}"
+  loop_control:
+    label: "{{ item.id }}"
+- name: "Create domain list for certbot"
+  ansible.builtin.set_fact:
+    certbot_certs_mine: "{{ certbot_certs_mine|default([]) + [{
+      'domains': [item.domain],
+      'email': cert_bot_email
+      }] }}"
+  loop: "{{ sites }}"
+  loop_control:
+    label: "{{ item.id }}"
+#- name: "Print created vhosts settings"
+#  ansible.builtin.debug:
+#    msg: "{{ vhosts_mine }}"
+#- name: "Print created vhosts_ssl settings"
+#  ansible.builtin.debug:
+#    msg: "{{ vhosts_ssl_mine }}"
+#- name: "Print certbot_certs_mine"
+#  ansible.builtin.debug:
+#    msg: "{{ certbot_certs_mine }}"
+
+- ansible.builtin.include_role:
+    name: geerlingguy.apache
+  vars:
+    apache_mods_enabled:
+      - rewrite
+      - ssl
+      - proxy
+      - proxy_http
+      - headers
+    apache_ignore_missing_ssl_certificate: false
+    apache_remove_default_vhost: true
+    apache_vhosts: "{{ vhosts_mine }}"
+    apache_vhosts_ssl: "{{ vhosts_ssl_mine }}"
+
+- ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_install_method: package
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - apache2
+    certbot_hsts: true
+    certbot_admin_email: "{{ cert_bot_email }}"
+    certbot_certs: "{{ certbot_certs_mine }}"
+    
+- ansible.builtin.include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_install_compose_plugin: true
+    docker_install_compose: false
+
+- name: Disable Apache2 proxy requests
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/apache2.conf
+    regexp: '^ProxyRequests'
+    line: "ProxyRequests Off"
+  register: proxy_request_off
+
+# TODO: do I need to set headers? I did this on the r-shiny server for some
+# reason, but maybe that is specific to rshiny apps
+- name: Ensure header X-Forwarded-Proto gets set
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/apache2.conf
+    regexp: '^RequestHeader set "X-Forwarded-Proto"'
+    line: 'RequestHeader set "X-Forwarded-Proto" expr=%{REQUEST_SCHEME}'
+  register: request_header_proto
+
+- name: Adjust headers
+  ansible.builtin.lineinfile:
+    path: /etc/apache2/apache2.conf
+    regexp: '^RequestHeader set "X-Forwarded-SSL"'
+    line: 'RequestHeader set "X-Forwarded-SSL" expr=%{HTTPS}'
+  register: request_header_ssl
+
+- name: Restart apache
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+  when: proxy_request_off.changed or request_header_proto.changed or request_header_ssl.changed

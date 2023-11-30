@@ -1,0 +1,26 @@
+---
+
+- hosts: ubuntu
+  become: yes
+  become_method: sudo
+  gather_facts: no
+  tasks:
+    - name: Update apt cache and upgrade all apt packages
+      register: updatesys
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+    - name: Display output from apt update and upgrade
+      debug:
+        msg:  "{{ updatesys.stdout_lines }}"
+    - name: Check if reboot required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+    - name: Report if reboot required
+      debug:
+        msg: "Reboot required: {{ reboot_required_file.stat.exists }}"
+    - name: Reboot if required
+      reboot:
+      when: reboot_required_file.stat.exists == True
