@@ -18,14 +18,10 @@ Also a good idea:
 - If making changes to playbooks, to install ansible-lint to check changes to the playbooks (see: [Installing Ansible Lint](https://ansible.readthedocs.io/projects/lint/installing/) )
 
 ## Managed VM setup
-To manage a VM with ansible, ansible requires ssh access, usually as a user with `sudo` permissions. There is a cloud-init script, [ansible-client-cloud-init.yml](./ansible-client-cloud-init.yml) which can be used when creating a new VM to create a user and inject a public key.
+To manage a VM with ansible, ansible requires ssh access, usually as a user with `sudo` permissions. There is an example cloud-init script, [ansible-client-cloud-init-example.yml](./ansible-client-cloud-init-example.yml) that can be used when creating a new VM after filling in the missing `< >` fields with suitable values. The new VM created with this cloud-init script will be setup to be managed with ansible. The `ssh_authorized_keys` list should contain a public key matching the private key added during the "Setup key" step under the [Usage](#usage) section.
 
-To use a different key, change the `ssh_authorized_keys` to list a different public key or set of public keys. A matching private key should be added during the "Setup key" step under the [Usage](#usage) section.
-
-If you change the `name` under the `users` section of the "ansible-client-cloud-init.yml" file, the `ansible_user` listed under `hosts` in the [inventory.yml](./inventory.yml) should match.
-
-If the `authorized_keys` file on the managed VMs need to be changed, the [./files/authorized_keys](./files/authorized_keys) can be updated to what is desired on the remote VMs and the [set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook can be used to update that file on managed VMs, provided you currently have ssh access on the managed VMs.  
-**CAUTION**: running the [set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook with a miss-configured [./files/authorized_keys](./files/authorized_keys) can cause you to loose access to your VMs.
+If the `authorized_keys` file on the managed VMs needs to be changed, the [./playbooks/files/authorized_keys](./playbooks/files/authorized_keys) can be updated to what is desired on the remote VMs and the [./playbooks/set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook can be used to update that file on managed VMs, provided you currently have ssh access on the managed VMs.  
+**CAUTION**: running the [./playbooks/set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook with a miss-configured [./playbooks/files/authorized_keys](./playbooks/files/authorized_keys) can cause you to loose access to your VMs.
 
 ## Object store setup
 
@@ -42,8 +38,10 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
 
   During the `init` restic command you will create a new password for the repository which will be the `RESTIC_PASSWORD` used below.
 
-## Secrets
+## Secrets setup
 Some secret variables are stored in `secrets.yml` files in both `group_vars/all` and `group_vars/wp_hosts`. These files are not committed to version control, but `secrets-example.yml` files are, which document what variables should be set in these files and to serve as a template for the `secrets.yml` files. Any files named `secrets.yml` are ignored by git.
+
+These `secret.yml` files must be created by copying the example files and have the variables contained set as described in the example files.
 
 # Usage
 
@@ -65,29 +63,32 @@ Some secret variables are stored in `secrets.yml` files in both `group_vars/all`
 
 # Managing backups
 
-## Set restic environment variables to those in your `group_vars/wp_hosts/scecrets.yml` file:
+## Set restic environment variables
+
+Set restic environment variables to those in your `./group_vars/wp_hosts/secrets.yml` file:
 
   `$ export RESTIC_BACKUP_URL="{{ restic_backup_url }}"`  
   `$ export RESTIC_PASSWORD="{{ restic_backup_repo_password }}"`  
   `$ export AWS_ACCESS_KEY_ID="{{ object_store_access_key_id }}"`  
   `$ export AWS_SECRET_ACCESS_KEY="{{ object_store_access_key }"`
 
-## View snapshots
+## List snapshots
 
-  $ restic -r $RESTIC_BACKUP_URL snapshots
+  `$ restic -r $RESTIC_BACKUP_URL snapshots`
 
 ## Delete all snapshost with a given tag
   
   `$ restic -r $RESTIC_BACKUP_URL forget --group-by tags --tag <tag-name> --keep-last 1`  
   `$ restic -r $RESTIC_BACKUP_URL forget --group-by tags latest --prune --tag <tag-name>`
 
-restic by default, groups snapshots by host, which means that if snapshots come from different hosts the `--keep-last 1` will keep the last snapshot on each host. The `--group-by tags` instead groups snapshots by tags so that the `--keep-last 1` keeps only one snapshot with that `<tag-name>` instead of one for each host.
+Eestic by default, groups snapshots by host, which means that if snapshots come from different hosts the `--keep-last 1` will keep the last snapshot on each host. The `--group-by tags` instead groups snapshots by tags so that the `--keep-last 1` keeps only one snapshot with that `<tag-name>` instead of one for each host.
 
 # Specific plays
 
-## `wp_setup.yml`
+## wp_setup.yml
+
 ### Adding a new site to a host
-The `port` number must be unique from other site `port` values.
+The `port` number must be unique from other site `port` values on that host VM.
 
 A new site must also have a unique `id` across all hosts otherwise it's backups will be associated with previous sites. This implies that the site backups would be lumped together. Since the `id` is used to reference backups during creation and restoring from.
 
@@ -98,13 +99,11 @@ It must also be unique within a host or there will be issues with the same direc
 #### RAM
 The below table shows how much RAM is used on a VM with a given number of sites. In this test a VM with 4 cores and 7.5G of RAM was used. These sites were basic no-frills sites with only one theme (tutorstarter) and two plugins installed (filebird-document-library,filebird ) there was also little to no content on these sites.
 
-+------+--------+
 |Sites | RAM(GB)|
-+------+--------+
+|------|--------|
 | 2    | 1.2    |
 | 4    | 2.1    |
 | 8    | 3.8    |
-+------+--------+
 
 This produced a very good linear relationship of about 0.43 GB per site with an initial amount of RAM used of 0.33 GB if we fit a line and calculate the y-axis crossing (with RAM on the y-axis and site count on the x-axis).
 
