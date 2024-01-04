@@ -1,0 +1,7 @@
+#cloud-config
+users:
+  - name: <default_ansible_user as given in group_vars/all/secrets.yml>
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - <ssh-public-key>

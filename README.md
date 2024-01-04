@@ -15,10 +15,10 @@ This is needed primarily for the [setup-dockerhost.yml](./playbooks/setup-docker
   `$ ansible-galaxy install -r requirements.yml`
 
 Also a good idea:
-- if making changes to install ansible-lint to check changes (see: [Installing Ansible Lint](https://ansible.readthedocs.io/projects/lint/installing/) )
+- If making changes to playbooks, to install ansible-lint to check changes to the playbooks (see: [Installing Ansible Lint](https://ansible.readthedocs.io/projects/lint/installing/) )
 
 ## Managed VM setup
-To manage a VM with ansible it requires ssh access, usually as a user with `sudo` permissions. There is a cloud-init script, [ansible-client-cloud-init.yml](./ansible-client-cloud-init.yml) which can be used when creating a new VM to create a user and inject a public key.
+To manage a VM with ansible, ansible requires ssh access, usually as a user with `sudo` permissions. There is a cloud-init script, [ansible-client-cloud-init.yml](./ansible-client-cloud-init.yml) which can be used when creating a new VM to create a user and inject a public key.
 
 To use a different key, change the `ssh_authorized_keys` to list a different public key or set of public keys. A matching private key should be added during the "Setup key" step under the [Usage](#usage) section.
 
@@ -33,11 +33,11 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
 
   1. Create storage access ID and secrete key: (see: [Establishing access to your Arbutus Object Store](https://docs.alliancecan.ca/wiki/Arbutus_object_storage#Establishing_access_to_your_Arbutus_Object_Store) )
   2. Create a new container to store restic backups using the "Containers" pane under "Object Store" left hand menu item.
-  3. Initialize a new restic repository using the access credentials created in 1 and the Arbutus HTTPS endpoint url (something like `https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME` ) using the "s3" protocol so that `s3:` should be appended to that URL to be used with the `RESTIC_BACKUP_URL` mentioned below under the "Managing bakups" section. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the ID and Key created in step 1 above. The commands to do this will look like:
+  3. Initialize a new restic repository using the access credentials created in step 1 and the Arbutus HTTPS endpoint url (something like `https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME` ) using the "s3" protocol so that `s3:` should be appended to that URL to be used with the `RESTIC_BACKUP_URL` mentioned below under the "Managing bakups" section. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the ID and Key created in step 1 above. The commands to do this will look like:
   
   `$ export RESTIC_BACKUP_URL="s3:https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME"`  
   `$ export AWS_ACCESS_KEY_ID="ID-from-step-1"`  
-  `$ export AWS_SECRET_ACCESS_KEY="key-from-step-1"`
+  `$ export AWS_SECRET_ACCESS_KEY="key-from-step-1"`  
   `$ restic -r $RESTIC_BACKUP_URL init`  
 
   During the `init` restic command you will create a new password for the repository which will be the `RESTIC_PASSWORD` used below.
