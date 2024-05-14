@@ -16,6 +16,7 @@ This is needed primarily for the [setup-dockerhost.yml](./playbooks/setup-docker
 
 Also a good idea:
 - If making changes to playbooks, to install ansible-lint to check changes to the playbooks (see: [Installing Ansible Lint](https://ansible.readthedocs.io/projects/lint/installing/) )
+Also see: yamllint, ansible-playbook --syntax-check, (molecule test (integration tests)), ansible-playbook --check (see what would change if run).
 
 ## Managed VM setup
 To manage a VM with ansible, ansible requires ssh access, usually as a user with `sudo` permissions. There is an example cloud-init script, [ansible-client-cloud-init-example.yml](./ansible-client-cloud-init-example.yml) that can be used when creating a new VM after filling in the missing `< >` fields with suitable values. The new VM created with this cloud-init script will be setup to be managed with ansible. The `ssh_authorized_keys` list should contain a public key matching the private key added during the "Setup key" step under the [Usage](#usage) section.
@@ -63,6 +64,8 @@ These `secret.yml` files must be created by copying the example files and have t
 
 # Managing backups
 
+Here is how to manage restic backups to an openstack object store from the command line. This setup is not needed if you are interacting with backups using ansible playbooks, instead those use `./group_vars/wp_hosts/secrets.yml` file.
+
 ## Set restic environment variables
 
 Set restic environment variables to those in your `./group_vars/wp_hosts/secrets.yml` file:
@@ -81,11 +84,18 @@ Set restic environment variables to those in your `./group_vars/wp_hosts/secrets
   `$ restic -r $RESTIC_BACKUP_URL forget --group-by tags --tag <tag-name> --keep-last 1`  
   `$ restic -r $RESTIC_BACKUP_URL forget --group-by tags latest --prune --tag <tag-name>`
 
-Eestic by default, groups snapshots by host, which means that if snapshots come from different hosts the `--keep-last 1` will keep the last snapshot on each host. The `--group-by tags` instead groups snapshots by tags so that the `--keep-last 1` keeps only one snapshot with that `<tag-name>` instead of one for each host.
+Restic by default groups snapshots by host, which means that if snapshots come from different hosts the `--keep-last 1` will keep the last snapshot on each host. The `--group-by tags` instead groups snapshots by tags so that the `--keep-last 1` keeps only one snapshot with that `<tag-name>` instead of one for each host.
 
 # Specific plays
 
 ## wp_setup.yml
+
+### setup/updating
+
+The same `wp_setup.yml` playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
+
+  `$ ansible-playbook -i ./inventory.yml -l wp_hosts ./playbooks/wp_setup.yml`
+
 
 ### Adding a new site to a host
 The `port` number must be unique from other site `port` values on that host VM.

@@ -7,12 +7,14 @@
 
 - name: "Check if there is a backup for site {{ site.id }}"
   ansible.builtin.command: >
-    restic -r "{{ restic_backup_url }}" --tag "{{ site.id }}" --verbose 
+    restic -r "{{ site.wp_settings.restic_backup_url |
+      default(default_restic_backup_url) }}" --tag "{{ site.id }}" --verbose 
     snapshots --json
   environment:
-    RESTIC_PASSWORD: "{{ restic_backup_repo_password }}"
-    AWS_ACCESS_KEY_ID: "{{ object_store_access_key_id }}"
-    AWS_SECRET_ACCESS_KEY: "{{ object_store_access_key }}"
+    RESTIC_PASSWORD: "{{ site.wp_settings.restic_backup_repo_password |
+      default(default_restic_backup_repo_password) }}"
+    AWS_ACCESS_KEY_ID: "{{ site.wp_settings.object_store_access_key_id | default(default_object_store_access_key_id) }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.wp_settings.object_store_access_key | default(default_object_store_access_key) }}"
   when: (not file.stat.exists) or (site.wp_settings.backup_restore_snapshot_id is defined)
   register: snapshotlist_result
   failed_when: false
@@ -81,12 +83,14 @@
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
-    time restic -r "{{ restic_backup_url }}" --verbose 
+    time restic -r "{{ site.wp_settings.restic_backup_url |
+      default(default_restic_backup_url) }}" --verbose 
     restore --tag "{{ site.id }}" --target ./ "{{ snapshot_to_restore }}"
   environment:
-    RESTIC_PASSWORD: "{{ restic_backup_repo_password }}"
-    AWS_ACCESS_KEY_ID: "{{ object_store_access_key_id }}"
-    AWS_SECRET_ACCESS_KEY: "{{ object_store_access_key }}"
+    RESTIC_PASSWORD: "{{ site.wp_settings.restic_backup_repo_password |
+      default(default_restic_backup_repo_password) }}"
+    AWS_ACCESS_KEY_ID: "{{ site.wp_settings.object_store_access_key_id | default(default_object_store_access_key_id) }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.wp_settings.object_store_access_key | default(default_object_store_access_key) }}"
   when: to_restore
 #  register: restore_results
 

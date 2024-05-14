@@ -47,6 +47,11 @@
 #- ansible.builtin.debug:
 #    msg: "active_theme_name: {{ active_theme_name }}"
 
+- ansible.builtin.set_fact:
+    complete_theme_list: "{{ default_themes + site.wp_settings.themes|default([]) }}"
+#- ansible.builtin.debug:
+#    msg: "complete_theme_list: {{ complete_theme_list }}"
+
 - name: "Install specified themes not installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-wp-1 
@@ -57,7 +62,7 @@
     -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
     "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
     wp theme install {{ theme_name }}
-  loop: "{{ site.wp_settings.themes }}"
+  loop: "{{ complete_theme_list }}"
   loop_control:
     loop_var: theme_name
   when: not theme_name in theme_name_list
@@ -71,8 +76,8 @@
     -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
     -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
     "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
-    wp theme activate {{ site.wp_settings.themes[0] }}
-  when: (not active_theme_name in site.wp_settings.themes) and
+    wp theme activate {{ complete_theme_list[0] }}
+  when: (not active_theme_name in complete_theme_list) and
     active_theme_name != None
 
 - name: "Remove unspecified themes on {{ site.id }}"
@@ -88,5 +93,5 @@
   loop: "{{ theme_name_list }}"
   loop_control:
     loop_var: theme_name
-  when: not theme_name in site.wp_settings.themes
+  when: not theme_name in complete_theme_list
   

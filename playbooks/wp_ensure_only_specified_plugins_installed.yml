@@ -19,6 +19,11 @@
 - name: "Create list of plugin names"
   ansible.builtin.set_fact:
     plugin_name_list: "{{ plugin_list | map(attribute='name') }}"
+- ansible.builtin.set_fact:
+    complete_plugin_list: "{{ default_plugins + site.wp_settings.plugins|default([]) }}"
+- ansible.builtin.debug:
+    msg: "complete_theme_list: {{ complete_theme_list }}"
+
 
 #- ansible.builtin.debug:
 #    msg: "plugin_name_list: {{ plugin_name_list }}"
@@ -33,7 +38,7 @@
     -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
     "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
     wp plugin install {{ plugin_name }}
-  loop: "{{ site.wp_settings.plugins }}"
+  loop: "{{ complete_plugin_list }}"
   loop_control:
     loop_var: plugin_name
   when: not plugin_name in plugin_name_list
@@ -51,4 +56,4 @@
   loop: "{{ plugin_name_list }}"
   loop_control:
     loop_var: plugin_name
-  when: not plugin_name in site.wp_settings.plugins
+  when: not plugin_name in complete_plugin_list
