@@ -15,6 +15,17 @@
 
   tasks:
     
+    #- name: "Show OS Versions"
+    #  ansible.builtin.debug:
+    #    msg:
+
+    - name: Distribution
+      debug: msg="{{ ansible_distribution }}"
+    - name: Distribution version
+      debug: msg="{{ ansible_distribution_version}}"
+    - name: Distribution major version
+      debug: msg="{{ ansible_distribution_major_version }}"
+
     - name: "Install restic"
       ansible.builtin.apt:
         name: restic
@@ -23,8 +34,12 @@
     # TODO: Do I want to update restic every time I run this?
     # How often do I run this?
     # I need to do this at least initially
-    - name: "Update restic"
-      ansible.builtin.command: restic self-update
+    # I removed this as newer versions of Ubuntu (e.g. 24 don't have this command)
+    # instead it is managed through apt. It is probably fine to use apt
+    # on older versions of ubuntu to manage this too? Or maybe, enable only on
+    # older versions of Ubuntu?
+    #- name: "Update restic"
+    #  ansible.builtin.command: restic self-update
     
     # TODO: maybe I should just remove the wp_backup.yml, and wp_update.yml
     # as this basically does it all. Would I want to do backups without updating?
@@ -68,6 +83,20 @@
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"
+      when: ansible_distribution_major_version | int<24
+    
+    #NOTE: lxd user doesn't seem to exist on Ubuntu 24 as it did on 22
+    #docker hub image page for mysql doesn't list "lxd" user, did it before?
+    - name: "Create database volume directories as needed"
+      ansible.builtin.file:
+        path: "/home/{{ default_ansible_user }}/{{ item.id }}/volumes/db"
+        state: directory
+        owner: "{{ default_ansible_user }}"
+        group: "{{ default_ansible_user }}"
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      when: ansible_distribution_major_version | int>=24
     
     #TODO: do I want to use docker secrets instead of environment variables
     # I was doing that initially, but switched to environment variables as

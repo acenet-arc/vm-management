@@ -14,8 +14,8 @@
 
     # TODO: Do I want to update restic every time I run this?
     # How often do I run this?
-    - name: "Update restic"
-      ansible.builtin.command: restic self-update
+    #- name: "Update restic"
+    #  ansible.builtin.command: restic self-update
 
     - name: "Backup Wordpress sites"
       ansible.builtin.include_tasks:
