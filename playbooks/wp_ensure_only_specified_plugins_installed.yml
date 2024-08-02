@@ -21,6 +21,8 @@
     plugin_name_list: "{{ plugin_list | map(attribute='name') }}"
 - ansible.builtin.set_fact:
     complete_plugin_list: "{{ default_plugins + site.wp_settings.plugins|default([]) }}"
+- ansible.builtin.set_fact:
+    complete_active_plugin_list: "{{ default_active_plugins + site.wp_settings.active_plugins|default([]) }}"
 - ansible.builtin.debug:
     msg: "complete_theme_list: {{ complete_theme_list }}"
 
@@ -57,3 +59,17 @@
   loop_control:
     loop_var: plugin_name
   when: not plugin_name in complete_plugin_list
+
+- name: "Activate specified plugins {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-wp-1 
+    --network container:"{{ site.id }}"-wp-1 --user 33:33
+    -e WORDPRESS_DB_HOST=db
+    -e WORDPRESS_DB_USER="{{ site.wp_settings.db_user | default(default_db_user) }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.wp_settings.db_user_password | default(default_db_user_password) }}"
+    -e WORDPRESS_DB_NAME="{{ site.wp_settings.db_name | default(default_db_name) }}"
+    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    wp plugin activate {{ plugin_name }}
+  loop: "{{ complete_active_plugin_list }}"
+  loop_control:
+    loop_var: plugin_name

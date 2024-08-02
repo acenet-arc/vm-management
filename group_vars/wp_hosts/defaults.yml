@@ -7,4 +7,5 @@ default_auto_update_core: false
 default_force_ssl_admin: true
 default_themes: 
   - twentytwentythree
-default_plugins: []
+default_plugins: [limit-login-attempts-reloaded]
+default_active_plugins: [limit-login-attempts-reloaded]

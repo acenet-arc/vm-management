@@ -2,8 +2,6 @@
 
 - name: "Loading database from dump for {{ site.id }}"
   ansible.builtin.shell: >
-    docker exec -e MYSQL_ROOT_PASSWORD -i "{{ site.id }}"-db-1 sh -c 
-    'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD' < 
-    ./"{{ site.id }}"/all-databases.sq
+    docker exec -e MYSQL_ROOT_PASSWORD -i {{ site.id }}-db-1 sh -c 'exec mysql -uroot -p$MYSQL_ROOT_PASSWORD' < ./{{ site.id }}/all-databases.sq
   environment:
     MYSQL_ROOT_PASSWORD: "{{ site.wp_settings.db_root_password | default(default_db_root_password) }}"

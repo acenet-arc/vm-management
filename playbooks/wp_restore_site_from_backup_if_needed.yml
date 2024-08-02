@@ -75,6 +75,13 @@
     msg: "snapshot_to_restore={{ snapshot_to_restore }}"
   when: to_restore
 
+- name: "Bring Containers down"
+  ansible.builtin.include_tasks:
+    file: "compose_down.yml"
+  vars:
+    project_id: "{{ site.id }}"
+  when: to_restore
+
 - name: "Remove {{ site.id }}'s directory for clean restore"
   ansible.builtin.file:
     path: "./{{ site.id }}"

@@ -47,6 +47,7 @@ wp_hosts:
   #      force_ssl_admin: <force-admin-to-use-ssl>
   #    themes: <list-of-theme-names-to-ensure-are-installed>
   #    plugins: <list-of-plugin-names-to-ensure-are-installed>
+  #    active_plugins: <list-of-plugin-names-to-ensure-are-activated>
 
   hosts:
     <host-alias>:
