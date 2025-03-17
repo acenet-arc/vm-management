@@ -1,0 +1,50 @@
+services:
+  
+  web:
+    image: wordpress
+    restart: always
+    ports:
+      - ${LOCAL_PORT}:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISALLOW_FILE_MODS',${WORDPRESS_DISSALLOW_FILE_MODS});
+        define('WP_AUTO_UPDATE_CORE',${WORDPRESS_AUTO_UPDATE_CORE});
+        define('FORCE_SSL_ADMIN', ${WORDPRESS_FORCE_SSL_ADMIN});
+    volumes:
+      - web:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test:  "mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME -e\"show tables;\""
+      timeout: 30s
+      retries: 100
+
+volumes:
+  web:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/web
+  db:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/db

@@ -1,0 +1,43 @@
+- name: "Managinag OmekaS Site {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "Managing {{ site.id }}"
+
+- name: "Set compose file to docker-compose-om.yml"
+  ansible.builtin.set_fact:
+    compose_file: "docker-compose-om.yml"
+
+- name: "Restore from backup if needed"
+  ansible.builtin.include_tasks:
+    file: restore_site_from_backup_if_needed.yml
+
+- name: "Make site directories as needed"
+  ansible.builtin.include_tasks:
+    file: make_site_directories_as_needed.yml
+
+- name: "Bring compose project up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml
+
+- name: "Load database for {{ site.id }} if restoring from backup"
+  ansible.builtin.include_tasks:
+    file: load_database.yml
+  when: restored[site.id]
+
+
+#TODO: add omeka setup stuff here, initial setup, install plugins and themes
+
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
+  when: site.backup.perform_backup is defined
+
+
+- name: "Backup site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: backup_site.yml
+  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
+
+#TODO: add omeka update here

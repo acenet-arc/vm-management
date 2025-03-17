@@ -32,12 +32,12 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
   2. Create a new container to store restic backups using the "Containers" pane under "Object Store" left hand menu item.
   3. Initialize a new restic repository using the access credentials created in step 1 and the Arbutus HTTPS endpoint url (something like `https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME` ) using the "s3" protocol so that `s3:` should be appended to that URL to be used with the `RESTIC_BACKUP_URL` mentioned below under the "Managing bakups" section. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the ID and Key created in step 1 above. The commands to do this will look like:
   
+  `$ export RESTIC_PASSWORD="<restic-backup-repository-password>"`  
   `$ export RESTIC_BACKUP_URL="s3:https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME"`  
   `$ export AWS_ACCESS_KEY_ID="ID-from-step-1"`  
   `$ export AWS_SECRET_ACCESS_KEY="key-from-step-1"`  
   `$ restic -r $RESTIC_BACKUP_URL init`  
 
-  During the `init` restic command you will create a new password for the repository which will be the `RESTIC_PASSWORD` used below.
 
 ## Secrets setup
 Some secret variables are stored in `secrets.yml` files in both `group_vars/all` and `group_vars/wp_hosts`. These files are not committed to version control, but `secrets-example.yml` files are, which document what variables should be set in these files and to serve as a template for the `secrets.yml` files. Any files named `secrets.yml` are ignored by git.
@@ -88,13 +88,13 @@ Restic by default groups snapshots by host, which means that if snapshots come f
 
 # Specific plays
 
-## wp_setup.yml
+## manage_sites.yml
 
 ### setup/updating
 
-The same `wp_setup.yml` playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
+The same `manage_sites.yml` playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
 
-  `$ ansible-playbook -i ./inventory.yml -l wp_hosts ./playbooks/wp_setup.yml`
+  `$ ansible-playbook -i ./inventory.yml -l wp_hosts ./playbooks/manage_sites.yml`
 
 
 ### Adding a new site to a host

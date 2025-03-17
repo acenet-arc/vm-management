@@ -1,0 +1,31 @@
+- name: "Create {{ site.id }} site directory as needed"
+  ansible.builtin.file:
+    path: "/home/{{ default_ansible_user }}/{{ site.id }}/"
+    state: directory
+    owner: "{{ default_ansible_user }}"
+    group: "{{ default_ansible_user }}"
+
+- name: "Create web root volume for {{ site.id }} as needed"
+  ansible.builtin.file:
+    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web"
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+
+- name: "Create database volume for {{ site.id }}  as needed"
+  ansible.builtin.file:
+    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/db"
+    state: directory
+    owner: "lxd"
+    group: "docker"
+  when: ansible_distribution_major_version | int<24
+
+#NOTE: lxd user doesn't seem to exist on Ubuntu 24 as it did on 22
+#docker hub image page for mysql doesn't list "lxd" user, did it before?
+- name: "Create database volume directories as needed"
+  ansible.builtin.file:
+    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/db"
+    state: directory
+    owner: "{{ default_ansible_user }}"
+    group: "{{ default_ansible_user }}"
+  when: ansible_distribution_major_version | int>=24

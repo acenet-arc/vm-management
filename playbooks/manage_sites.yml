@@ -1,0 +1,59 @@
+---
+
+- hosts: 
+    - wp_hosts
+  become: true
+  become_method: sudo
+  gather_facts: true
+  
+  roles:
+    - role: dockerhost
+      vars:
+        docker_users:
+          - "{{ default_ansible_user }}"
+        cert_bot_email: "{{ default_email }}"
+  
+  tasks:
+    
+    - name: Distribution
+      debug: msg="{{ ansible_distribution }}"
+    - name: Distribution version
+      debug: msg="{{ ansible_distribution_version}}"
+    - name: Distribution major version
+      debug: msg="{{ ansible_distribution_major_version }}"
+    
+    - name: "Ensure restic is installed and updated"
+      ansible.builtin.include_tasks:
+        file: restic_install_update.yml
+    
+    - name: "Copy supporting files"
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/home/{{ default_ansible_user }}/{{ item }}"
+        owner: "{{ default_ansible_user }}"
+        group: "{{ default_ansible_user }}"
+      loop:
+        - docker-compose-om.yml
+        - docker-compose-wp.yml
+        - Dockerfile
+        - docker-entrypoint.sh
+    
+    - name: "Manage WordPress sites"
+      ansible.builtin.include_tasks:
+        file: manage_wp_site.yml
+      when: site.wp_settings is defined
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"
+    
+    - name: "Manage Omeka sites"
+      ansible.builtin.include_tasks:
+        file: manage_om_site.yml
+      when: site.om_settings is defined
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"

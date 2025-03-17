@@ -1,0 +1,73 @@
+- name: "Managinag WordPress Site {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "Managing {{ site.id }}"
+
+- name: "Set compose file to docker-compose-wp.yml"
+  ansible.builtin.set_fact:
+    compose_file: "docker-compose-wp.yml"
+
+- name: "Restore from backup if needed"
+  ansible.builtin.include_tasks:
+    file: restore_site_from_backup_if_needed.yml
+
+- name: "Make site directories as needed"
+  ansible.builtin.include_tasks:
+    file: make_site_directories_as_needed.yml
+
+- name: "Bring compose project up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml
+
+- name: "Load database for {{ site.id }} if restoring from backup"
+  ansible.builtin.include_tasks:
+    file: load_database.yml
+  when: restored[site.id]
+  
+- name: "Install Wordpress core for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: wp_install_core_if_needed.yml
+
+- name: "Ensure only specified themes installed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: wp_ensure_only_specified_themes_installed.yml
+
+- name: "Ensure only specified plugins installed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: wp_ensure_only_specified_plugins_installed.yml
+
+- name: "Ensure site URLs correct for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: wp_ensure_site_url.yml
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
+  when: site.backup.perform_backup is defined
+
+- name: "Configure web/.htaccess for {{ site.id }}"
+  ansible.builtin.blockinfile:
+    path: "./{{ site.id }}/volumes/web/.htaccess"
+    block: "{{ site.wp_settings.htaccess }}"
+  when: site.wp_settings.htaccess is defined
+  register: htaccess_result
+
+- name: "Bring compose project down for {{ site.id }} if .htacces file changed"
+  ansible.builtin.include_tasks:
+    file: compose_down.yml
+  when: htaccess_result.changed
+
+- name: "Bring compose projects up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml
+  when: htaccess_result.changed
+
+- name: "Backup Wordpress site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: backup_site.yml
+  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
+
+- name: "Update Wordpress site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: wp_update_site.yml

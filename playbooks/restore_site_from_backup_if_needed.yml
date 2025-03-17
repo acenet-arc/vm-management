@@ -7,23 +7,23 @@
 
 - name: "Check if there is a backup for site {{ site.id }}"
   ansible.builtin.command: >
-    restic -r "{{ site.wp_settings.restic_backup_url |
+    restic -r "{{ site.backup.restic_backup_url |
       default(default_restic_backup_url) }}" --tag "{{ site.id }}" --verbose 
     snapshots --json
   environment:
-    RESTIC_PASSWORD: "{{ site.wp_settings.restic_backup_repo_password |
+    RESTIC_PASSWORD: "{{ site.backup.restic_backup_repo_password |
       default(default_restic_backup_repo_password) }}"
-    AWS_ACCESS_KEY_ID: "{{ site.wp_settings.object_store_access_key_id | default(default_object_store_access_key_id) }}"
-    AWS_SECRET_ACCESS_KEY: "{{ site.wp_settings.object_store_access_key | default(default_object_store_access_key) }}"
-  when: (not file.stat.exists) or (site.wp_settings.backup_restore_snapshot_id is defined)
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store_access_key_id | default(default_object_store_access_key_id) }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store_access_key | default(default_object_store_access_key) }}"
+  when: (not file.stat.exists) or (site.backup.backup_restore_snapshot_id is defined)
   register: snapshotlist_result
   failed_when: false
   changed_when: false
   
 - name: "Parse backup snapshot list output into list"
   ansible.builtin.set_fact:
-    snapshotlist: "{{ snapshotlist_result.stdout| ansible.builtin.from_json | map(attribute='short_id')}}"
-  when: (not file.stat.exists) or (site.wp_settings.backup_restore_snapshot_id is defined)
+    snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
+  when: (not file.stat.exists) or (site.backup.backup_restore_snapshot_id is defined)
 
 - name: "Display snapshot list"
   ansible.builtin.debug:
@@ -41,9 +41,9 @@
 - name: "Checking if we should restore because of an explicitly set backup_restore_snapshot_id"
   ansible.builtin.set_fact:
     to_restore_requested: "{{ 
-    ( site.wp_settings.backup_restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
-    (site.wp_settings.backup_restore_snapshot_id in snapshotlist) }}"
-  when: site.wp_settings.backup_restore_snapshot_id is defined
+    ( site.backup.backup_restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
+    (site.backup.backup_restore_snapshot_id in snapshotlist) }}"
+  when: site.backup.backup_restore_snapshot_id is defined
 
 - name: "Checking if we need to restore from backup"
   ansible.builtin.set_fact:
@@ -56,15 +56,15 @@
 
 - name: "Set snapshot_to_restore to specific ID"
   ansible.builtin.set_fact:
-    snapshot_to_restore: "{{ site.wp_settings.backup_restore_snapshot_id }}"
-  when: to_restore_requested and (site.wp_settings.backup_restore_snapshot_id in snapshotlist)
+    snapshot_to_restore: "{{ site.backup.backup_restore_snapshot_id }}"
+  when: to_restore_requested and (site.backup.backup_restore_snapshot_id in snapshotlist)
 
 - name: "Verify requested backup_restore_snapshot_id in list of snapshots"
   ansible.builtin.fail:
-    msg: "Requested backup_restore_snapshot_id={{ site.wp_settings.backup_restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
+    msg: "Requested backup_restore_snapshot_id={{ site.backup.backup_restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
   when: to_restore_requested and 
-    (site.wp_settings.backup_restore_snapshot_id!='latest') and
-    (not (site.wp_settings.backup_restore_snapshot_id in snapshotlist))
+    (site.backup.backup_restore_snapshot_id!='latest') and
+    (not (site.backup.backup_restore_snapshot_id in snapshotlist))
 
 - name: "Are we restoring from a backup?"
   ansible.builtin.debug:
@@ -90,14 +90,14 @@
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
-    time restic -r "{{ site.wp_settings.restic_backup_url |
+    time restic -r "{{ site.backup.restic_backup_url |
       default(default_restic_backup_url) }}" --verbose 
     restore --tag "{{ site.id }}" --target ./ "{{ snapshot_to_restore }}"
   environment:
-    RESTIC_PASSWORD: "{{ site.wp_settings.restic_backup_repo_password |
+    RESTIC_PASSWORD: "{{ site.backup.restic_backup_repo_password |
       default(default_restic_backup_repo_password) }}"
-    AWS_ACCESS_KEY_ID: "{{ site.wp_settings.object_store_access_key_id | default(default_object_store_access_key_id) }}"
-    AWS_SECRET_ACCESS_KEY: "{{ site.wp_settings.object_store_access_key | default(default_object_store_access_key) }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store_access_key_id | default(default_object_store_access_key_id) }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store_access_key | default(default_object_store_access_key) }}"
   when: to_restore
 #  register: restore_results
 

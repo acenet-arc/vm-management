@@ -19,7 +19,7 @@
 
     - name: "Backup Wordpress sites"
       ansible.builtin.include_tasks:
-        file: wp_backup_site.yml
+        file: backup_site.yml
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"

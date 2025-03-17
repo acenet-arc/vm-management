@@ -1,0 +1,16 @@
+---
+
+    - name: "Install restic"
+      ansible.builtin.apt:
+        name: restic
+        state: present
+
+    # TODO: Do I want to update restic every time I run this?
+    # How often do I run this?
+    # I need to do this at least initially
+    # I removed this as newer versions of Ubuntu (e.g. 24 don't have this command)
+    # instead it is managed through apt. It is probably fine to use apt
+    # on older versions of ubuntu to manage this too? Or maybe, enable only on
+    # older versions of Ubuntu?
+    #- name: "Update restic"
+    #  ansible.builtin.command: restic self-update
