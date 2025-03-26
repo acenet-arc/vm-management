@@ -32,7 +32,7 @@
 #    msg: "needs_up={{ needs_up }}"
 
 - name:  "Bring compose project, {{ site.id }}, up if not already up"
-  ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up -d
+  ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up --build -d
   environment:
     DB_USER: "{{ site.database.db_user | default(default_db_user) }}"
     DB_PASSWORD: "{{ site.database.db_user_password | default(default_db_user_password) }}"
@@ -40,8 +40,8 @@
     DB_ROOT_PASSWORD: "{{ site.database.db_root_password | default(default_db_root_password) }}"
     SITE_NAME: "{{ site.id }}"
     LOCAL_PORT: "{{ site.port }}"
-    WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(default_dissallow_file_mods) }}"
-    WORDPRESS_AUTO_UPDATE_CORE: "{{ site.wp_settings.config.auto_update_core | default(default_auto_update_core) }}"
-    WORDPRESS_FORCE_SSL_ADMIN: "{{ site.wp_settings.config.force_ssl_admin | default(default_force_ssl_admin) }}"
+    WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_default_dissallow_file_mods) }}"
+    WORDPRESS_AUTO_UPDATE_CORE: "{{ site.wp_settings.config.auto_update_core | default(wp_default_auto_update_core) }}"
+    WORDPRESS_FORCE_SSL_ADMIN: "{{ site.wp_settings.config.force_ssl_admin | default(wp_default_force_ssl_admin) }}"
     
   when: needs_up

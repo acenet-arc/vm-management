@@ -12,7 +12,7 @@
     owner: "www-data"
     group: "www-data"
 
-- name: "Create database volume for {{ site.id }}  as needed"
+- name: "Create database volume for {{ site.id }} as needed"
   ansible.builtin.file:
     path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/db"
     state: directory

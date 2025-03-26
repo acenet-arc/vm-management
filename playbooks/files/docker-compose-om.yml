@@ -1,8 +1,8 @@
 services:
   
   web:
-    image: omekas:latest
-    build: ../
+    image: omeka-s:latest
+    build: ./
     restart: always
     ports:
       - ${LOCAL_PORT}:80

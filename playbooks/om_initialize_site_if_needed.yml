@@ -1,0 +1,24 @@
+- name: "Check if Omeka S site {{ site.id }} already initialized"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli core version
+  register: omeka_site_initialized_result
+  failed_when: false
+  changed_when: false
+  
+- name: "Initlize site {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 --user 33:33 "{{ om_default_cli_image }}"
+    curl
+    --data-urlencode "user[email]={{ site.om_settings.initial.admin_email }}"
+    --data-urlencode "user[email-confirm]={{ site.om_settings.initial.admin_email }}"
+    --data-urlencode "user[name]={{ site.om_settings.initial.admin_display_name }}"
+    --data-urlencode "user[password-confirm][password]={{ site.om_settings.initial.admin_password }}"
+    --data-urlencode "user[password-confirm][password-confirm]={{ site.om_settings.initial.admin_password }}"
+    --data-urlencode "settings[installation_title]={{ site.om_settings.initial.title }}"
+    --data-urlencode "settings[time_zone]={{ site.om_settings.initial.time_zone }}"
+    --data-urlencode "settings[locale]="
+    http://localhost/install
+  when: omeka_site_initialized_result.stdout | length == 0

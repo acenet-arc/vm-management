@@ -1,0 +1,5 @@
+- name: "Build Omeka-S cli image"
+  ansible.builtin.command: docker build -t "{{ om_default_cli_image }}" -f ./Dockerfile_om_cli .
+  
+- name: "Remove dangling docker images"
+  ansible.builtin.command: docker image prune -f

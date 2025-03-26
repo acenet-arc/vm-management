@@ -1,0 +1,14 @@
+{
+  "name": "Vm-management-dev",
+  "files": [
+    {
+      "directory": ".",
+      "filters": [
+        "*.*",
+        ".*",
+        "*"
+      ],
+      "recursive": 1
+    }
+  ]
+}

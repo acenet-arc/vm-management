@@ -1,0 +1,102 @@
+---
+- name: "Get list of modules installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module list -j
+  register: module_list_result
+  failed_when: false
+  changed_when: false
+
+#- ansible.builtin.debug:
+#    msg: "module_list_result={{ module_list_result.stdout_lines}}"
+#  when: module_list_result.stdout_lines is defined and 
+#    (module_list_result.stdout_lines|length >0) and 
+#    (module_list_result.stdout_lines[-1][-1]=="}")
+  
+- ansible.builtin.set_fact:
+    current_modules:  {}
+  
+- ansible.builtin.set_fact:
+    current_modules: "{{ module_list_result.stdout_lines[-1] | from_json }}"
+  when: module_list_result.stdout_lines is defined and
+    (module_list_result.stdout_lines|length >0) and 
+    (module_list_result.stdout_lines[-1][-1]=="}")
+
+#- ansible.builtin.debug:
+#    msg: "current_modules={{ current_modules }}"
+  
+- ansible.builtin.set_fact:
+    current_modules_list: "{{ current_modules.keys() | list }}"
+- ansible.builtin.debug:
+    msg: "current_modules_list={{current_modules_list}}"
+
+- ansible.builtin.set_fact:
+    complete_module_list: "{{ om_default_modules + site.om_settings.modules|default([]) }}"
+    
+- name: "Download specified modules not already on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module download {{ module_name }} -f
+  loop: "{{ complete_module_list }}"
+  loop_control:
+    loop_var: module_name
+  when: not module_name in current_modules_list
+    
+    
+- name: "Install specified modules not installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module install {{ module_name }} -f
+  loop: "{{ complete_module_list }}"
+  loop_control:
+    loop_var: module_name
+  when: (not module_name in current_modules_list) or ( current_modules[module_name]['state']!= "active" )
+  
+- name: "Update list of modules installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module list -j
+  register: module_list_result
+  failed_when: false
+  changed_when: false
+  
+- ansible.builtin.set_fact:
+    current_modules:  {}
+  
+- ansible.builtin.set_fact:
+    current_modules: "{{ module_list_result.stdout_lines[-1] | from_json }}"
+  when: module_list_result.stdout_lines is defined and (module_list_result.stdout_lines|length >0)
+
+- name: "Ensure installed specified modules are active on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module enable {{ module_name }} -f
+  loop: "{{ complete_module_list }}"
+  loop_control:
+    loop_var: module_name
+  when: ( current_modules[module_name]['state']!= "active" )
+  
+- name: "Deactivate unspecified modules on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module disable {{ module_name }}
+  loop: "{{ current_modules_list }}"
+  loop_control:
+    loop_var: module_name
+  when: not module_name in complete_module_list
+  
+- name: "Remove unspecified modules on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli module delete {{ module_name }} -f
+  loop: "{{ current_modules_list }}"
+  loop_control:
+    loop_var: module_name
+  when: not module_name in complete_module_list

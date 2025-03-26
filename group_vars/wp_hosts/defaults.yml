@@ -1,11 +1,17 @@
 ---
 
-default_wp_cli_image: "wordpress:cli"
 default_initial_site_title: "Test Site"
-default_dissallow_file_mods: true
-default_auto_update_core: false
-default_force_ssl_admin: true
-default_themes: 
+wp_default_cli_image: "wordpress:cli"
+wp_default_dissallow_file_mods: true
+wp_default_auto_update_core: false
+wp_default_force_ssl_admin: true
+wp_default_themes: 
   - twentytwentythree
-default_plugins: [limit-login-attempts-reloaded]
-default_active_plugins: [limit-login-attempts-reloaded]
+wp_default_plugins: [limit-login-attempts-reloaded]
+wp_default_active_plugins: [limit-login-attempts-reloaded]
+
+om_default_cli_image: "omeka-s-cli:latest"
+om_default_themes:
+  - default
+om_default_modules: []
+om_default_active_modules: []

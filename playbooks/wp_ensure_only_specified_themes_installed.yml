@@ -48,7 +48,7 @@
 #    msg: "active_theme_name: {{ active_theme_name }}"
 
 - ansible.builtin.set_fact:
-    complete_theme_list: "{{ default_themes + site.wp_settings.themes|default([]) }}"
+    complete_theme_list: "{{ wp_default_themes + site.wp_settings.themes|default([]) }}"
 #- ansible.builtin.debug:
 #    msg: "complete_theme_list: {{ complete_theme_list }}"
 

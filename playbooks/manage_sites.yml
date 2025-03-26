@@ -6,12 +6,12 @@
   become_method: sudo
   gather_facts: true
   
-  roles:
-    - role: dockerhost
-      vars:
-        docker_users:
-          - "{{ default_ansible_user }}"
-        cert_bot_email: "{{ default_email }}"
+  #roles:
+  #  - role: dockerhost
+  #    vars:
+  #      docker_users:
+  #        - "{{ default_ansible_user }}"
+  #      cert_bot_email: "{{ default_email }}"
   
   tasks:
     
@@ -26,7 +26,21 @@
       ansible.builtin.include_tasks:
         file: restic_install_update.yml
     
-    - name: "Copy supporting files"
+    #NOTE: Wordpress site specific setup
+    #not needed if only hosting Omeka sites on host
+    - name: "Copy WordPress supporting files"
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/home/{{ default_ansible_user }}/{{ item }}"
+        owner: "{{ default_ansible_user }}"
+        group: "{{ default_ansible_user }}"
+      loop:
+        - docker-compose-wp.yml
+      register: copy_wp_supporting_files
+    
+    #NOTE: Omeka-S site specific setup
+    #not needed if only hosting WordPress sites on host
+    - name: "Copy Omeka-S supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: "/home/{{ default_ansible_user }}/{{ item }}"
@@ -34,13 +48,28 @@
         group: "{{ default_ansible_user }}"
       loop:
         - docker-compose-om.yml
-        - docker-compose-wp.yml
         - Dockerfile
         - docker-entrypoint.sh
-    
+      register: copy_om_supporting_files
+      
+    - name: "Copy Omeka-S-cli supporting files"
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/home/{{ default_ansible_user }}/{{ item }}"
+        owner: "{{ default_ansible_user }}"
+        group: "{{ default_ansible_user }}"
+      loop:
+        - Dockerfile_om_cli
+      register: copy_om_cli_supporting_files
+      
+    - name: "Ensure Omeka-S CLI docker image built"
+      ansible.builtin.include_tasks:
+        file: om_build_cli_image.yml
+      when: copy_om_cli_supporting_files.changed
+      
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
-        file: manage_wp_site.yml
+        file: wp_manage_site.yml
       when: site.wp_settings is defined
       loop: "{{ sites }}"
       loop_control:
@@ -50,7 +79,7 @@
     
     - name: "Manage Omeka sites"
       ansible.builtin.include_tasks:
-        file: manage_om_site.yml
+        file: om_manage_site.yml
       when: site.om_settings is defined
       loop: "{{ sites }}"
       loop_control:

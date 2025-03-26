@@ -14,6 +14,12 @@
   ansible.builtin.include_tasks:
     file: make_site_directories_as_needed.yml
 
+
+- name: "Compose down if supporting files changed"
+  ansible.builtin.include_tasks:
+    file: compose_down.yml
+  when: copy_wp_supporting_files.changed
+    
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
@@ -65,7 +71,7 @@
 
 - name: "Backup Wordpress site {{ site.id }}"
   ansible.builtin.include_tasks:
-    file: backup_site.yml
+    file: restic_backup_site.yml
   when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
 
 - name: "Update Wordpress site {{ site.id }}"

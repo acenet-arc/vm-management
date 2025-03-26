@@ -1,0 +1,53 @@
+- name: "Get list of themes installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli theme list -j
+  register: theme_list_result
+  failed_when: false
+  changed_when: false
+
+#- ansible.builtin.debug:
+#    msg: "theme_list_result={{ theme_list_result.stdout_lines[-1] | from_json}}"
+#  when: theme_list_result.stdout_lines is defined and
+##    (theme_list_result.stdout_lines|length >0) and 
+#    (theme_list_result.stdout_lines[-1][-1]=="}")
+  
+- ansible.builtin.set_fact:
+    current_themes: "{{ {} }}"
+  
+- ansible.builtin.set_fact:
+    current_themes: "{{ theme_list_result.stdout_lines[-1] | from_json }}"
+  when: theme_list_result.stdout_lines is defined and
+    (theme_list_result.stdout_lines|length >0) and 
+    (theme_list_result.stdout_lines[-1][-1]=="}")
+
+- ansible.builtin.set_fact:
+    current_theme_list: "{{ current_themes.keys() | list }}"
+- ansible.builtin.debug:
+    msg: "current_theme_list={{current_theme_list}}"
+
+- ansible.builtin.set_fact:
+    complete_theme_list: "{{ om_default_themes + site.om_settings.themes|default([]) }}"
+    
+- name: "Install specified themes not installed on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli theme download {{ theme_name }} -f
+  loop: "{{ complete_theme_list }}"
+  loop_control:
+    loop_var: theme_name
+  when: not theme_name in current_theme_list
+
+#TODO: somehow set active theme to default if active theme is one to be removed, turns out this is hard to do especially on a multi-site
+  
+- name: "Remove unspecified themes on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    omeka-s-cli theme delete {{ theme_name }}
+  loop: "{{ current_theme_list }}"
+  loop_control:
+    loop_var: theme_name
+  when: not theme_name in complete_theme_list
