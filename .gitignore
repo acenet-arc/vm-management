@@ -1,3 +1,4 @@
 **/secrets.yml
 inventory.yml
+vm-secrets/inventory.yml
 ansible-client-cloud-init.yml

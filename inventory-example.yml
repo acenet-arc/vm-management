@@ -7,29 +7,30 @@ ungrouped:
   hosts:
     <host-alias>: <ip-adress>
 
-wp_hosts:
-  #Default values for host vars are used if a value is not specified below.
-  #See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets_example.yml
+website_hosts:
+  #Default vales for host vars should be used if a value is not specified 
+  #below. See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets.yml
 
   #site vars which may be set
-  #- domain: your.domain.com
+  #- domain: "testansible9.ace-net.training"
   #  port: <port-number-used-by-docker>
-  #  id: <a-unique-id-for-site>, used to tag backups also allows sites to be 
-  #     replicated on different hosts through pulling down backups. See also
-  #     perform_backup: parameter below to avoid replicated sites push backups
-  #     and overwritting existing backups for that site
+  #  id: <a-unique-id-for-site>
+  #  backup:
+  #    perform_backup: true/false if true the site will be backed up
+  #    backup_restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
+  #    restic_backup_url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
+  #    restic_backup_repo_password: restic repository password
+  #    object_store_access_key_id: access key id for object store
+  #    object_store_access_key: access key for object store
+  #  database:
+  #    db_user: username for database
+  #    db_user_password: database user's password
+  #    db_root_password: database root password
+  #    db_name: name of the database
+  #
+  #  #If site is a wordpress site include these settings
   #  wp_settings:
   #    wp_cli_image: <docker-image-to-use-for-wp-cli>
-  #    db_user: <database-user>
-  #    db_user_password: <database-password>
-  #    db_root_password: <database-root-password>
-  #    db_name: <database-name>
-  #    backup_restore_snapshot_id: <snapshot-id-or-latest>
-  #    perform_backup: <should-we-backup>
-  #    restic_backup_url: <object-store-url>
-  #    restic_backup_repo_password: <restic-repository-password>
-  #    object_store_access_key_id: <object-store-access-key-id>
-  #    object_store_access_key: <object-store-access-key>
   #    htaccess: <extra-settings-to-put-in-.htaccess-file, for example to 
   #      allow max file upload sizes of 500M
   #    htaccess: |
@@ -47,26 +48,73 @@ wp_hosts:
   #      force_ssl_admin: <force-admin-to-use-ssl>
   #    themes: <list-of-theme-names-to-ensure-are-installed>
   #    plugins: <list-of-plugin-names-to-ensure-are-installed>
-  #    active_plugins: <list-of-plugin-names-to-ensure-are-activated>
+  #
+  #  #If site is an omeka site include these settings
+  #  om_settings:
+  #    initial:
+  #      admin_email:
+  #      admin_display_name:
+  #      admin_password:
+  #      title:
+  #      time_zone:
+  #    themes: []
+  #    modules: []
 
   hosts:
     <host-alias>:
       sites:
-        - domain: "your.domain.com"
-          port: 8080
-          id: unique_site_id
-          wp_settings:
-            themes:
-              - <a-name-of-a-theme-you-want>
-              - <a-name-of-another-theme-you-want>
-            plugins:
-              - <a-name-of-a-plugin-you-want>
-              - <a-name-of-another-plugin-you-want>
-        - domain: "your.second.domain.com"
+        - domain: "omekatest.ace-net.training"
           port: 8081
-          id: unique_site_id_2
-          wp_settings:
-            backup_restore_snapshot_id: latest
+          id: omekatest
+          backup:
             perform_backup: false
+            #backup_restore_snapshot_id: latest
+            restic_backup_url: ""
+            restic_backup_repo_password: ""
+            object_store_access_key_id: ""
+            object_store_access_key: ""
+          database:
+            db_user: ""
+            db_user_password: ""
+            db_root_password: ""
+            db_name: ""
+          om_settings:
             initial:
-              title: "Site 2 title"
+              admin_email: ""
+              admin_display_name: ""
+              admin_password: ""
+              title: ""
+              time_zone: "UTC"
+            themes: []
+            modules: []
+       
+        - domain: ""
+          port: 8080
+          id: wptest
+          backup-original:
+            perform_backup: false
+            restic_backup_url: ""
+            restic_backup_repo_password: ""
+            object_store_access_key_id: ""
+            object_store_access_key: ""
+          backup:
+            perform_backup: true
+            #backup_restore_snapshot_id: latest
+            restic_backup_url: ''
+            restic_backup_repo_password: ""
+            object_store_access_key_id: ""
+            object_store_access_key: ""
+          database:
+            db_user: ""
+            db_user_password: ""
+            db_root_password: ""
+            db_name: ""
+          wp_settings:
+            initial:
+              title: 
+              admin_user: ""
+              admin_password: ""
+              admin_email: ""
+            config:
+              dissallow_file_mods: false
+            themes: []
