@@ -6,13 +6,19 @@ These playbooks have been developed only testing Ubuntu based VMs. Modifications
 As a first step, the playbook [playbooks/update_apt_packages.yml](./playbooks/update_apt_packages.yml) can be used to update apt-based VMs and reboot if required.
 
 # Setup
-## Requirements
-On the machine that you will be running these plays, you must:
+## Ansible Controller setup
+On the machine that you will be running these plays to manage VMs, you must:
 - have Ansible installed (see: [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) )
 - install Ansible requirements.<br/>
 This is needed primarily for the [setup-dockerhost.yml](./playbooks/setup-dockerhost.yml) playbook, most other playbooks have no requirements. For example, it is not requred for [playbooks/update_apt_packages.yml](./playbooks/update_apt_packages.yml).
 
   `$ ansible-galaxy install -r requirements.yml`
+
+- Setup public/private key to use when accessing managed VMs
+  1. start up ssh-agent  
+    `$ ssh-agent`
+  2. add private key used by ansible to connect to clients  
+    `$ ssh-add <path-to-private-key>`
 
 Also a good idea:
 - If making changes to playbooks, to install ansible-lint to check changes to the playbooks (see: [Installing Ansible Lint](https://ansible.readthedocs.io/projects/lint/installing/) )
@@ -38,28 +44,20 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
   `$ export AWS_SECRET_ACCESS_KEY="key-from-step-1"`  
   `$ restic -r $RESTIC_BACKUP_URL init`  
 
+## Inventory setup
 
-## Secrets setup
-Some secret variables are stored in `secrets.yml` files in both `group_vars/all` and `group_vars/wp_hosts`. These files are not committed to version control, but `secrets-example.yml` files are, which document what variables should be set in these files and to serve as a template for the `secrets.yml` files. Any files named `secrets.yml` are ignored by git.
-
-These `secret.yml` files must be created by copying the example files and have the variables contained set as described in the example files.
+Wordpress and Omeka default variable values are set in [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) which can be overridden per site in the `inventory.yml` file. The majority of variables describing how sites are configured are set in the inventory.yml file, see [`inventory-example.yml`](inventory-example.yml)
 
 # Usage
 
-* Setup key
-  1. start up ssh-agent  
-    `$ ssh-agent`
-  2. add private key used by ansible to connect to clients  
-    `$ ssh-add <path-to-private-key>`
 * Run a playbook  
   `$ ansible-playbook -i ./inventory.yml playbooks/<playbook-file-name>`
 * Update and upgrade all hosts, rebooting if needed  
   `$ ansible-playbook -i ./inventory.yml ./playbooks/update_apt_packages.yml`
-* To add a new host, put it in `./inventory.yml`
 * limiting a play to a specific group of hosts (e.g. `dockerhosts_dev`)  
   `$ ansible-playbook -i ./inventory.yml -l dockerhosts_dev ./playbooks/update_apt_packages.yml`
 
-* Creating a new VM
+* Creating a new VM  
   To create a new VM to be managed by ansible use the `ansible-client-cloud-init.yml` when creating the VM and then add it to the `inventory.yml`
 
 # Managing backups
@@ -116,9 +114,3 @@ The below table shows how much RAM is used on a VM with a given number of sites.
 | 8    | 3.8    |
 
 This produced a very good linear relationship of about 0.43 GB per site with an initial amount of RAM used of 0.33 GB if we fit a line and calculate the y-axis crossing (with RAM on the y-axis and site count on the x-axis).
-
-### Variables
-
-Important variables are set in 
-  * [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) : sets WordPress and Omeka related default settings which can be overridden per site in the `inventory.yml` file. The majority of variables are set in the inventory.yml file, see [`inventory-example.yml`](inventory-example.yml)
-
