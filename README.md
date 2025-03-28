@@ -92,7 +92,7 @@ Restic by default groups snapshots by host, which means that if snapshots come f
 
 ### setup/updating
 
-The same `manage_sites.yml` playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
+The same [`manage_sites.yml`](manage_sites.yml) playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
 
   `$ ansible-playbook -i ./inventory.yml -l wp_hosts ./playbooks/manage_sites.yml`
 
@@ -120,7 +120,5 @@ This produced a very good linear relationship of about 0.43 GB per site with an 
 ### Variables
 
 Important variables are set in 
-  * `group_vars/all/secerets.yml` : set the default email and what user ansible should connect with
-  * `group_vars/wp_hosts/secrets.yml`: sets Wordpress related secrets, e.g. database password
-  * `group_vars/wp_hosts/defaults.yml` : sets WordPress related default settings which can be overridden per site in the `inventory.yml` file.
+  * [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) : sets WordPress and Omeka related default settings which can be overridden per site in the `inventory.yml` file. The majority of variables are set in the inventory.yml file, see [`inventory-example.yml`](inventory-example.yml)
 

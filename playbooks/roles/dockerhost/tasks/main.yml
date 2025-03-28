@@ -1,10 +1,12 @@
 ---
+
 - name: "Set extra vhosts params"
   ansible.builtin.set_fact:
     extra_vhost_parameters: |
       RewriteEngine On
       RewriteCond %{HTTPS} off
       RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
+
 - name: "Create vhosts settings from host's sites variable"
   ansible.builtin.set_fact:
     vhosts_mine: "{{ vhosts_mine|default([]) + [{
@@ -15,6 +17,7 @@
   loop: "{{ sites }}"
   loop_control:
     label: "{{ item.id }}"
+
 - name: "Create vhosts_ssl settings from host's sites variable"
   ansible.builtin.set_fact:
     vhosts_ssl_mine: "{{ vhosts_ssl_mine|default([]) + [{
@@ -27,6 +30,7 @@
   loop: "{{ sites }}"
   loop_control:
     label: "{{ item.id }}"
+
 - name: "Create domain list for certbot"
   ansible.builtin.set_fact:
     certbot_certs_mine: "{{ certbot_certs_mine|default([]) + [{

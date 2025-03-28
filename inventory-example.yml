@@ -1,11 +1,15 @@
 ---
 
-ungrouped:
+all:
+  
   vars:
+    default_ansible_user: ""
+    default_email: ""
     ansible_connection: ssh
     ansible_user: "{{ default_ansible_user }}"
   hosts:
-    <host-alias>: <ip-adress>
+    <host-alias>: 
+      ansible_host: <ip-adress>
 
 website_hosts:
   #Default vales for host vars should be used if a value is not specified 
@@ -63,7 +67,7 @@ website_hosts:
   hosts:
     <host-alias>:
       sites:
-        - domain: "omekatest.ace-net.training"
+        - domain: ""
           port: 8081
           id: omekatest
           backup:
@@ -91,12 +95,6 @@ website_hosts:
         - domain: ""
           port: 8080
           id: wptest
-          backup-original:
-            perform_backup: false
-            restic_backup_url: ""
-            restic_backup_repo_password: ""
-            object_store_access_key_id: ""
-            object_store_access_key: ""
           backup:
             perform_backup: true
             #backup_restore_snapshot_id: latest

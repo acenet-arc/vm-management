@@ -13,5 +13,5 @@ wp_default_active_plugins: [limit-login-attempts-reloaded]
 om_default_cli_image: "omeka-s-cli:latest"
 om_default_themes:
   - default
-om_default_modules: []
-om_default_active_modules: []
+om_default_modules: [Lockout]
+om_default_active_modules: [Lockout]
