@@ -18,7 +18,7 @@
   ansible.builtin.include_tasks:
     file: compose_down.yml
   when: copy_om_supporting_files.changed
-    
+
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
@@ -31,27 +31,14 @@
 - name: "Initialize omeka-s site {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: om_initialize_site_if_needed.yml
-  
+
 - name: "Ensure only specified themes installed for {{ site.id }}"
   ansible.builtin.include_tasks:
     file: om_ensure_only_specified_themes_installed.yml
-    
+
 - name: "Ensure only specified modules installed for {{ site.id }}"
   ansible.builtin.include_tasks:
     file: om_ensure_only_specified_modules_installed.yml
-  
-#TODO: add omeka setup stuff here, initial setup, install modules and themes
-# $ omeka-s-cli core latest: prints latest version of omeka-s core available
-# $ omeka-s-cli core version: prints the version of current installed omeka-s core
-# $ omeka-s-cli core upgrade: upgrades to latest version if not already
-# $ omeka-s-cli config list: didn't display anything, likely need to configure site first
-# $ omeka-s-cli db dump: dumps database?
-# $ omeka-s-cli info system: lists information about omeka S version (even before initial config), PHP config, MySQL config, OS kernel, modules, PHP/ImageMagick paths
-# $ omeka-s-cli info db: lists database connection info
-# $ omeka-s-cli module: a number of sub commands for listing, installing, deleting, updating, enabling etc. of modules
-# $ omeka-s-cli theme: a number of sub commands for managing omeka themes
-#
-
 
 - ansible.builtin.debug:
     msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
@@ -59,7 +46,6 @@
 - ansible.builtin.debug:
     msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
   when: site.backup.perform_backup is defined
-
 
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:

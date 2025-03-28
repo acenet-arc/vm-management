@@ -1,16 +1,18 @@
 #  Overview
-Ansible playbooks to management VMs.
+Ansible playbooks to manage VMs.
 
 These playbooks have been developed only testing Ubuntu based VMs. Modifications are likely required for VMs using other operating systems.
 
 As a first step, the playbook [playbooks/update_apt_packages.yml](./playbooks/update_apt_packages.yml) can be used to update apt-based VMs and reboot if required.
+
+The main playbook used in this repository is [`manage_sites.yml`](playbooks/manage_sites.yml). This playbook can be used to create, configure, update, and backup WordPress and Omeka sites on one or more hosts. These sites are run inside docker containers and have separate databases running in their own separate docker containers.
 
 # Setup
 ## Ansible Controller setup
 On the machine that you will be running these plays to manage VMs, you must:
 - have Ansible installed (see: [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) )
 - install Ansible requirements.<br/>
-This is needed primarily for the [setup-dockerhost.yml](./playbooks/setup-dockerhost.yml) playbook, most other playbooks have no requirements. For example, it is not requred for [playbooks/update_apt_packages.yml](./playbooks/update_apt_packages.yml).
+These requirements are needed primarily for the manage_sites.yml](./playbooks/manage_sites.yml) playbook, other playbooks have no requirements. For example, it is not requred for [playbooks/update_apt_packages.yml](./playbooks/update_apt_packages.yml).
 
   `$ ansible-galaxy install -r requirements.yml`
 
@@ -28,11 +30,11 @@ Also see: yamllint, ansible-playbook --syntax-check, (molecule test (integration
 To manage a VM with ansible, ansible requires ssh access, usually as a user with `sudo` permissions. There is an example cloud-init script, [ansible-client-cloud-init-example.yml](./ansible-client-cloud-init-example.yml) that can be used when creating a new VM after filling in the missing `< >` fields with suitable values. The new VM created with this cloud-init script will be setup to be managed with ansible. The `ssh_authorized_keys` list should contain a public key matching the private key added during the "Setup key" step under the [Usage](#usage) section.
 
 If the `authorized_keys` file on the managed VMs needs to be changed, the [./playbooks/files/authorized_keys](./playbooks/files/authorized_keys) can be updated to what is desired on the remote VMs and the [./playbooks/set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook can be used to update that file on managed VMs, provided you currently have ssh access on the managed VMs.  
-**CAUTION**: running the [./playbooks/set-authorized-keys-file.yml](./playbooks/set-authorized-keys-file.yml) playbook with a miss-configured [./playbooks/files/authorized_keys](./playbooks/files/authorized_keys) can cause you to loose access to your VMs.
+**CAUTION**: running the [set_authorized_keys_file.yml](./playbooks/set_authorized_keys_file.yml) playbook with a miss-configured [./playbooks/files/authorized_keys](./playbooks/files/authorized_keys) can cause you to loose access to your VMs.
 
 ## Object store setup
 
-Backups are saved to a container in Object store on Arbutus. To set it up:
+Backups are saved to a container in Object store. To set it up:
 
   1. Create storage access ID and secrete key: (see: [Establishing access to your Arbutus Object Store](https://docs.alliancecan.ca/wiki/Arbutus_object_storage#Establishing_access_to_your_Arbutus_Object_Store) )
   2. Create a new container to store restic backups using the "Containers" pane under "Object Store" left hand menu item.
@@ -46,27 +48,27 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
 
 ## Inventory setup
 
-Wordpress and Omeka default variable values are set in [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) which can be overridden per site in the `inventory.yml` file. The majority of variables describing how sites are configured are set in the inventory.yml file. Use [`inventory-example.yml`](inventory-example.yml) as a template for creating your own `inventory.yml` file.
+Wordpress and Omeka default variable values are set in [`group_vars/website_hosts/defaults.yml`](./playbooks/group_vars/website_hosts/defaults.yml) which can be overridden per site in your `inventory.yml` file. The majority of variables describing how sites are configured are set in your inventory.yml file. Use [`inventory-example.yml`](inventory-example.yml) as a template for creating your own `inventory.yml` file.
 
 # Usage
 
 * Run a playbook  
   `$ ansible-playbook -i ./inventory.yml playbooks/<playbook-file-name>`
-* Update and upgrade all hosts, rebooting if needed  
+* Update and upgrade apt repo and packages all hosts, rebooting if needed  
   `$ ansible-playbook -i ./inventory.yml ./playbooks/update_apt_packages.yml`
-* limiting a play to a specific group of hosts (e.g. `dockerhosts_dev`)  
-  `$ ansible-playbook -i ./inventory.yml -l dockerhosts_dev ./playbooks/update_apt_packages.yml`
-
-* Creating a new VM  
-  To create a new VM to be managed by ansible use the [`ansible-client-cloud-init-example.yml`](ansible-client-cloud-init-example.yml) when creating the VM and then add it to the `inventory.yml`
+* Limiting a play to a specific group of hosts (e.g. `dockerhosts_dev`)  
+  `$ ansible-playbook -i ./inventory.yml -l dockerhosts_dev ./playbooks/update_apt_packages.yml`  
+  Where `dockerhosts_dev` are a host group defined in your `./inventory.yml` file.
+ * Creating, configurating, updating, and backing up sites on hosts defined in `./inventory.yml`  
+  `$ ansible-playbook -i ./inventory.yml -l dockerhosts_dev ./playbooks/manage_sites.yml`
 
 # Managing backups
 
-Here is how to manage restic backups to an openstack object store from the command line. This setup is not needed if you are interacting with backups using ansible playbooks, instead those use `./group_vars/wp_hosts/secrets.yml` file.
+This section describes how to manage restic backups to an openstack object store from the command line. This setup is not needed if you are interacting with backups using ansible playbooks, instead those use the variables defined in your `./inventory.yml` file.
 
 ## Set restic environment variables
 
-Set restic environment variables to those in your `./group_vars/wp_hosts/secrets.yml` file:
+Set restic environment variables to those in your `./inventory.yml` file for a particular host:
 
   `$ export RESTIC_BACKUP_URL="{{ restic_backup_url }}"`  
   `$ export RESTIC_PASSWORD="{{ restic_backup_repo_password }}"`  
@@ -90,9 +92,9 @@ Restic by default groups snapshots by host, which means that if snapshots come f
 
 ### setup/updating
 
-The same [`manage_sites.yml`](manage_sites.yml) playbook both updates and sets up sites as needed based on the settings in the inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
+The same [`manage_sites.yml`](manage_sites.yml) playbook both updates and sets up sites as needed based on the settings in your inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
 
-  `$ ansible-playbook -i ./inventory.yml -l wp_hosts ./playbooks/manage_sites.yml`
+  `$ ansible-playbook -i ./inventory.yml -l website_hosts ./playbooks/manage_sites.yml`
 
 
 ### Adding a new site to a host
