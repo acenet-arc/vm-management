@@ -46,7 +46,7 @@ Backups are saved to a container in Object store on Arbutus. To set it up:
 
 ## Inventory setup
 
-Wordpress and Omeka default variable values are set in [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) which can be overridden per site in the `inventory.yml` file. The majority of variables describing how sites are configured are set in the inventory.yml file, see [`inventory-example.yml`](inventory-example.yml)
+Wordpress and Omeka default variable values are set in [`group_vars/website_hosts/defaults.yml`](group_vars/website_hosts/defaults.yml) which can be overridden per site in the `inventory.yml` file. The majority of variables describing how sites are configured are set in the inventory.yml file. Use [`inventory-example.yml`](inventory-example.yml) as a template for creating your own `inventory.yml` file.
 
 # Usage
 
@@ -58,7 +58,7 @@ Wordpress and Omeka default variable values are set in [`group_vars/website_host
   `$ ansible-playbook -i ./inventory.yml -l dockerhosts_dev ./playbooks/update_apt_packages.yml`
 
 * Creating a new VM  
-  To create a new VM to be managed by ansible use the `ansible-client-cloud-init.yml` when creating the VM and then add it to the `inventory.yml`
+  To create a new VM to be managed by ansible use the [`ansible-client-cloud-init-example.yml`](ansible-client-cloud-init-example.yml) when creating the VM and then add it to the `inventory.yml`
 
 # Managing backups
 
