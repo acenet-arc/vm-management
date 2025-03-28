@@ -12,7 +12,7 @@ The main playbook used in this repository is [`playbooks/manage_sites.yml`](play
 On the machine that you will be running these plays to manage VMs, you must:
 - have Ansible installed (see: [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) )
 - install Ansible requirements.<br/>
-These requirements are needed primarily for the manage_sites.yml](./playbooks/manage_sites.yml) playbook, other playbooks have no requirements. For example, it is not requred for [`update_apt_packages.yml`](./playbooks/update_apt_packages.yml).
+These requirements are needed primarily for the manage_sites.yml](./playbooks/manage_sites.yml) playbook, other playbooks have no requirements. For example, it is not requred for [`playbooks/update_apt_packages.yml`](./playbooks/update_apt_packages.yml).
 
   `$ ansible-galaxy install -r requirements.yml`
 
@@ -92,7 +92,7 @@ Restic by default groups snapshots by host, which means that if snapshots come f
 
 ### setup/updating
 
-The same [`playbooks/manage_sites.yml`](playbooks/manage_sites.yml) playbook both updates and sets up sites as needed based on the settings in your inventory file. It can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts.
+The same [`playbooks/manage_sites.yml`](playbooks/manage_sites.yml) playbook both updates and sets up sites as needed based on the settings in your inventory file. See [`inventory-example.yml`](inventory-example.yml) for details on what should be in your inventory file. This playbook can also restore sites from existing backups on different hosts. Port numbers and urls need to be considered when restoring sites on different hosts as Port numbers need to be unique within a host and URLs will necessarily need to be different from the original site.
 
   `$ ansible-playbook -i ./inventory.yml -l website_hosts ./playbooks/manage_sites.yml`
 
