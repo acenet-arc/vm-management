@@ -15,3 +15,5 @@ om_default_themes:
   - default
 om_default_modules: [Lockout]
 om_default_active_modules: [Lockout]
+om_default_modules_dir_writeable: false
+om_default_themes_dir_writeable: false

@@ -31,7 +31,11 @@
 - name: "Initialize omeka-s site {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: om_initialize_site_if_needed.yml
-
+    
+- name: "Set site {{ site.id }} file permissions"
+  ansible.builtin.include_tasks:
+    file: om_set_file_permissions.yml
+    
 - name: "Ensure only specified themes installed for {{ site.id }}"
   ansible.builtin.include_tasks:
     file: om_ensure_only_specified_themes_installed.yml
