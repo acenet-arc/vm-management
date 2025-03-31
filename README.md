@@ -107,7 +107,7 @@ It must also be unique within a host or there will be issues with the same direc
 ### Hardware requirements
 
 #### RAM
-The below table shows how much RAM is used on a VM with a given number of sites. In this test a VM with 4 cores and 7.5G of RAM was used. These sites were basic no-frills sites with only one theme (tutorstarter) and two plugins installed (filebird-document-library,filebird ) there was also little to no content on these sites.
+The below table shows how much RAM is used on a VM with a given number of WordPress sites. In this test a VM with 4 cores and 7.5G of RAM was used. These sites were basic no-frills sites with only one theme (tutorstarter) and two plugins installed (filebird-document-library,filebird ) there was also little to no content on these sites.
 
 |Sites | RAM(GB)|
 |------|--------|
