@@ -1,7 +1,7 @@
 - name: "Check if Omeka S site {{ site.id }} already initialized"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli core version
   register: omeka_site_initialized_result
   failed_when: false
@@ -10,7 +10,7 @@
 - name: "Initlize site {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 --user 33:33 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 --user 33:33 "{{ om_defaults.cli_image }}"
     curl
     --data-urlencode "user[email]={{ site.om_settings.initial.admin_email }}"
     --data-urlencode "user[email-confirm]={{ site.om_settings.initial.admin_email }}"

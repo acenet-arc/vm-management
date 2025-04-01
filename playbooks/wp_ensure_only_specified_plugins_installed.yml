@@ -3,10 +3,10 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user | default(default_db_user) }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password | default(default_db_user_password) }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name | default(default_db_name) }}"
-    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin list --format=json --fields=name
   register: plugin_list_result
   failed_when: false
@@ -20,25 +20,25 @@
   ansible.builtin.set_fact:
     plugin_name_list: "{{ plugin_list | map(attribute='name') }}"
 - ansible.builtin.set_fact:
-    complete_plugin_list: "{{ default_plugins + site.wp_settings.plugins|default([]) }}"
+    complete_plugin_list: "{{ wp_defaults.plugins + site.wp_settings.plugins|default([]) }}"
 - ansible.builtin.set_fact:
-    complete_active_plugin_list: "{{ default_active_plugins + site.wp_settings.active_plugins|default([]) }}"
+    complete_active_plugin_list: "{{ wp_defaults.active_plugins + site.wp_settings.active_plugins|default([]) }}"
 - ansible.builtin.debug:
     msg: "complete_theme_list: {{ complete_theme_list }}"
 
 
-#- ansible.builtin.debug:
-#    msg: "plugin_name_list: {{ plugin_name_list }}"
+- ansible.builtin.debug:
+    msg: "Installed Plugins: {{ plugin_name_list }}"
 
 - name: "Install specified plugins not installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user | default(default_db_user) }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password | default(default_db_user_password) }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name | default(default_db_name) }}"
-    "{{ site.database.wp_cli_image | default(default_wp_cli_image) }}"
+    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    "{{ site.database.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin install {{ plugin_name }}
   loop: "{{ complete_plugin_list }}"
   loop_control:
@@ -50,10 +50,10 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user | default(default_db_user) }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password | default(default_db_user_password) }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name | default(default_db_name) }}"
-    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin delete {{ plugin_name }}
   loop: "{{ plugin_name_list }}"
   loop_control:
@@ -65,10 +65,10 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user | default(default_db_user) }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password | default(default_db_user_password) }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name | default(default_db_name) }}"
-    "{{ site.wp_settings.wp_cli_image | default(default_wp_cli_image) }}"
+    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin activate {{ plugin_name }}
   loop: "{{ complete_active_plugin_list }}"
   loop_control:

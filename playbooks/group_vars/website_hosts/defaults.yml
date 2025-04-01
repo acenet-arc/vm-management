@@ -1,19 +1,18 @@
 ---
 
 default_initial_site_title: "Test Site"
-wp_default_cli_image: "wordpress:cli"
-wp_default_dissallow_file_mods: true
-wp_default_auto_update_core: false
-wp_default_force_ssl_admin: true
-wp_default_themes: 
-  - twentytwentythree
-wp_default_plugins: [limit-login-attempts-reloaded]
-wp_default_active_plugins: [limit-login-attempts-reloaded]
-
-om_default_cli_image: "omeka-s-cli:latest"
-om_default_themes:
-  - default
-om_default_modules: [Lockout]
-om_default_active_modules: [Lockout]
-om_default_modules_dir_writeable: false
-om_default_themes_dir_writeable: false
+wp_defaults:
+  cli_image: "wordpress:cli"
+  dissallow_file_mods: true
+  auto_update_core: false
+  force_ssl_admin: true
+  themes: [twentytwentythree]
+  plugins: [limit-login-attempts-reloaded]
+  active_plugins: [limit-login-attempts-reloaded]
+om_defaults:
+  cli_image:  "omeka-s-cli:latest"
+  themes: ["default"]
+  modules: ["Lockout"]
+  active_modules: ["Lockout"]
+  modules_dir_writeable: false
+  themes_dir_writeable: false

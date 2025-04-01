@@ -1,10 +1,10 @@
 - name: "Modules directory should be writable?"
   ansible.builtin.set_fact:
-    modules_dir_writeable: "{{ site.om_settings.config.modules_dir_writeable_by_webserver | default(om_default_modules_dir_writeable) }} | bool"
+    modules_dir_writeable: "{{ site.om_settings.config.modules_dir_writeable_by_webserver | default(om_defaults.modules_dir_writeable) }} | bool"
     
 - name: "Themes directory should be writable?"
   ansible.builtin.set_fact:
-    themes_dir_writeable: "{{ site.om_settings.config.themes_dir_writeable_by_webserver | default(om_default_themes_dir_writeable) }} | bool"
+    themes_dir_writeable: "{{ site.om_settings.config.themes_dir_writeable_by_webserver | default(om_defaults.themes_dir_writeable) }} | bool"
 
 - name: "Ensure modules directory writable by webserver"
   ansible.builtin.file:

@@ -1,5 +1,5 @@
-WORDPRESS_DISSALLOW_FILE_MODS={{ item.wp_settings.config.dissallow_file_mods | default(default_dissallow_file_mods) }}
-WORDPRESS_AUTO_UPDATE_CORE={{ item.wp_settings.config.auto_update_core | default(default_auto_update_core) }}
-WORDPRESS_FORCE_SSL_ADMIN={{ item.wp_settings.config.force_ssl_admin | default(default_force_ssl_admin) }}
+WORDPRESS_DISSALLOW_FILE_MODS={{ item.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}
+WORDPRESS_AUTO_UPDATE_CORE={{ item.wp_settings.config.auto_update_core | default(wp_defaults.auto_update_core) }}
+WORDPRESS_FORCE_SSL_ADMIN={{ item.wp_settings.config.force_ssl_admin | default(wp_defaults.force_ssl_admin) }}
 SITE_NAME={{ item.id }}
 LOCAL_PORT={{ item.port }}

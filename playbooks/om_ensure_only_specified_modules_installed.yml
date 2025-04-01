@@ -2,7 +2,7 @@
 - name: "Get list of modules installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module list -j
   register: module_list_result
   failed_when: false
@@ -32,12 +32,12 @@
     msg: "current_modules_list={{current_modules_list}}"
 
 - ansible.builtin.set_fact:
-    complete_module_list: "{{ om_default_modules + site.om_settings.modules|default([]) }}"
+    complete_module_list: "{{ om_defaults.modules + site.om_settings.modules|default([]) }}"
     
 - name: "Download specified modules not already on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module download {{ module_name }} -f
   loop: "{{ complete_module_list }}"
   loop_control:
@@ -48,7 +48,7 @@
 - name: "Install specified modules not installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module install {{ module_name }} -f
   loop: "{{ complete_module_list }}"
   loop_control:
@@ -58,7 +58,7 @@
 - name: "Update list of modules installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module list -j
   register: module_list_result
   failed_when: false
@@ -74,7 +74,7 @@
 - name: "Ensure installed specified modules are active on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module enable {{ module_name }} -f
   loop: "{{ complete_module_list }}"
   loop_control:
@@ -84,7 +84,7 @@
 - name: "Deactivate unspecified modules on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module disable {{ module_name }}
   loop: "{{ current_modules_list }}"
   loop_control:
@@ -94,7 +94,7 @@
 - name: "Remove unspecified modules on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 "{{ om_default_cli_image }}"
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module delete {{ module_name }} -f
   loop: "{{ current_modules_list }}"
   loop_control:
