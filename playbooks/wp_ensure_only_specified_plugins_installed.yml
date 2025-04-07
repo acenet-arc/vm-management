@@ -3,9 +3,9 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    -e WORDPRESS_DB_USER="{{ site.database.user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin list --format=json --fields=name
   register: plugin_list_result
@@ -35,9 +35,9 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    -e WORDPRESS_DB_USER="{{ site.database.user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.database.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin install {{ plugin_name }}
   loop: "{{ complete_plugin_list }}"
@@ -50,9 +50,9 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    -e WORDPRESS_DB_USER="{{ site.database.user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin delete {{ plugin_name }}
   loop: "{{ plugin_name_list }}"
@@ -65,9 +65,9 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
     -e WORDPRESS_DB_HOST=db
-    -e WORDPRESS_DB_USER="{{ site.database.db_user }}"
-    -e WORDPRESS_DB_PASSWORD="{{ site.database.db_user_password }}"
-    -e WORDPRESS_DB_NAME="{{ site.database.db_name }}"
+    -e WORDPRESS_DB_USER="{{ site.database.user }}"
+    -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
+    -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp plugin activate {{ plugin_name }}
   loop: "{{ complete_active_plugin_list }}"

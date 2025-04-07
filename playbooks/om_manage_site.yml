@@ -53,7 +53,7 @@
 
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
-    file: backup_site.yml
+    file: restic_backup_site.yml
   when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
 
 - name: "Update Omeka site {{ site.id }}"

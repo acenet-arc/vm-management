@@ -3,8 +3,7 @@
 all:
   
   vars:
-    default_ansible_user: ""
-    default_email: ""
+    ansible_user: ""
     ansible_connection: ssh
     ansible_user: "{{ default_ansible_user }}"
   hosts:
@@ -22,15 +21,17 @@ website_hosts:
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
   #    backup_restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
-  #    restic_backup_url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
-  #    restic_backup_repo_password: restic repository password
-  #    object_store_access_key_id: access key id for object store
-  #    object_store_access_key: access key for object store
+  #    object_store:
+  #      url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
+  #      key_id: access key id for object store
+  #      key: access key for object store
+  #    restic:
+  #      password: restic repository password
   #  database:
-  #    db_user: username for database
-  #    db_user_password: database user's password
-  #    db_root_password: database root password
-  #    db_name: name of the database
+  #    user: username for database
+  #    user_password: database user's password
+  #    root_password: database root password
+  #    name: name of the database
   #
   #  #If site is a wordpress site include these settings
   #  wp_settings:
@@ -73,15 +74,17 @@ website_hosts:
           backup:
             perform_backup: false
             #backup_restore_snapshot_id: latest
-            restic_backup_url: ""
-            restic_backup_repo_password: ""
-            object_store_access_key_id: ""
-            object_store_access_key: ""
+            object_store:
+              key_id: ""
+              key: ""
+              url: ""
+            restic:
+              password: ""
           database:
-            db_user: ""
-            db_user_password: ""
-            db_root_password: ""
-            db_name: ""
+            user: ""
+            user_password: ""
+            root_password: ""
+            name: ""
           om_settings:
             initial:
               admin_email: ""
@@ -98,15 +101,17 @@ website_hosts:
           backup:
             perform_backup: true
             #backup_restore_snapshot_id: latest
-            restic_backup_url: ''
-            restic_backup_repo_password: ""
-            object_store_access_key_id: ""
-            object_store_access_key: ""
+            object_store:
+              key_id: ""
+              key: ""
+              url: ""
+            restic:
+              password: ""
           database:
-            db_user: ""
-            db_user_password: ""
-            db_root_password: ""
-            db_name: ""
+            user: ""
+            user_password: ""
+            root_password: ""
+            name: ""
           wp_settings:
             initial:
               title: 

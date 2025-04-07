@@ -6,23 +6,23 @@
     'mysqldump --all-databases -uroot -p$MYSQL_ROOT_PASSWORD' > 
     ./"{{ site.id }}"/all-databases.sq
   environment:
-    MYSQL_ROOT_PASSWORD: "{{ site.database.db_root_password }}"
+    MYSQL_ROOT_PASSWORD: "{{ site.database.root_password }}"
 
 - name: "Set {{ site.id }}'s database dump's owner"
   ansible.builtin.file:
     path: "./{{ site.id }}/all-databases.sq"
-    owner: "{{ default_ansible_user }}"
-    group: "{{ default_ansible_user }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     state: file
 
 - name: "Backup site, {{ site.id }}"
   ansible.builtin.command: >
-    time restic -r "{{ site.backup.restic_backup_url }}" --tag "{{ site.id }}" --verbose 
+    time restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
     backup "./{{ site.id }}" --exclude="./{{ site.id }}/volumes/db"
   environment:
-    RESTIC_PASSWORD: "{{ site.backup.restic_backup_repo_password }}"
-    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store_access_key_id }}"
-    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store_access_key }}"
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
 #  register: backup_results
 
 #- name: "Display backup results"

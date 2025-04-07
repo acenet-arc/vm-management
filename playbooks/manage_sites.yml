@@ -10,8 +10,7 @@
     - role: dockerhost
       vars:
         docker_users:
-          - "{{ default_ansible_user }}"
-        cert_bot_email: "{{ default_email }}"
+          - "{{ ansible_user }}"
   
   tasks:
     
@@ -31,9 +30,9 @@
     - name: "Copy WordPress supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "/home/{{ default_ansible_user }}/{{ item }}"
-        owner: "{{ default_ansible_user }}"
-        group: "{{ default_ansible_user }}"
+        dest: "/home/{{ ansible_user }}/{{ item }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
       loop:
         - docker-compose-wp.yml
       register: copy_wp_supporting_files
@@ -43,9 +42,9 @@
     - name: "Copy Omeka-S supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "/home/{{ default_ansible_user }}/{{ item }}"
-        owner: "{{ default_ansible_user }}"
-        group: "{{ default_ansible_user }}"
+        dest: "/home/{{ ansible_user }}/{{ item }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
       loop:
         - docker-compose-om.yml
         - Dockerfile
@@ -55,9 +54,9 @@
     - name: "Copy Omeka-S-cli supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "/home/{{ default_ansible_user }}/{{ item }}"
-        owner: "{{ default_ansible_user }}"
-        group: "{{ default_ansible_user }}"
+        dest: "/home/{{ ansible_user }}/{{ item }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
       loop:
         - Dockerfile_om_cli
       register: copy_om_cli_supporting_files

@@ -71,9 +71,9 @@ This section describes how to manage restic backups to an openstack object store
 Set restic environment variables to those in your `./inventory.yml` file for a particular host:
 
   `$ export RESTIC_BACKUP_URL="{{ restic_backup_url }}"`  
-  `$ export RESTIC_PASSWORD="{{ restic_backup_repo_password }}"`  
-  `$ export AWS_ACCESS_KEY_ID="{{ object_store_access_key_id }}"`  
-  `$ export AWS_SECRET_ACCESS_KEY="{{ object_store_access_key }"`
+  `$ export RESTIC_PASSWORD="{{ restic.password }}"`  
+  `$ export AWS_ACCESS_KEY_ID="{{ object_store.key_id }}"`  
+  `$ export AWS_SECRET_ACCESS_KEY="{{ object_store.key }"`
 
 ## List snapshots
 

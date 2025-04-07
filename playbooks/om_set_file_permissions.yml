@@ -8,7 +8,7 @@
 
 - name: "Ensure modules directory writable by webserver"
   ansible.builtin.file:
-    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web/modules"
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/modules"
     state: directory
     owner: "www-data"
     group: "www-data"
@@ -17,7 +17,7 @@
   
 - name: "Ensure modules directory not writable by webserver"
   ansible.builtin.file:
-    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web/modules"
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/modules"
     state: directory
     owner: "root"
     group: "root"
@@ -26,7 +26,7 @@
   
 - name: "Ensure themes directory writable by webserver"
   ansible.builtin.file:
-    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web/themes"
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/themes"
     state: directory
     owner: "www-data"
     group: "www-data"
@@ -35,7 +35,7 @@
   
 - name: "Ensure themes directory not writable by webserver"
   ansible.builtin.file:
-    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web/themes"
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/themes"
     state: directory
     owner: "root"
     group: "root"
@@ -44,7 +44,7 @@
   
 - name: "Ensure database.ini only readable by www-data"
   ansible.builtin.file:
-    path: "/home/{{ default_ansible_user }}/{{ site.id }}/volumes/web/config/database.ini"
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/config/database.ini"
     state: file
     owner: "www-data"
     group: "www-data"
