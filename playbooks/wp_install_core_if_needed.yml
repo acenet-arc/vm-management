@@ -33,5 +33,5 @@
     --admin_user="{{ site.wp_settings.initial.admin_user | default(default_admin_user) }}"
     --admin_password="{{ site.wp_settings.initial.admin_password | default(default_admin_password) }}"
     --admin_email="{{ site.wp_settings.initial.admin_email | default(default_admin_email) }}"
-    --url="https://{{ site.domain }}"
+    --url="https://{{ site.domains[0] }}"
   when: not core_is_installed

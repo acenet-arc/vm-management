@@ -7,39 +7,14 @@
       RewriteCond %{HTTPS} off
       RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
 
-- name: "Create vhosts settings from host's sites variable"
-  ansible.builtin.set_fact:
-    vhosts_mine: "{{ vhosts_mine|default([]) + [{
-      'servername':item.domain,
-      'documentroot':'/var/www/html',
-      'extra_parameters': extra_vhost_parameters
-      }] }}"
+- name: "Create site vhosts, vhosts_ssl, and certbot per site"
+  ansible.builtin.include_tasks:
+    file: vhosts_vars.yml
   loop: "{{ sites }}"
   loop_control:
-    label: "{{ item.id }}"
+    loop_var: site
+    label: "{{ site.id }}"
 
-- name: "Create vhosts_ssl settings from host's sites variable"
-  ansible.builtin.set_fact:
-    vhosts_ssl_mine: "{{ vhosts_ssl_mine|default([]) + [{
-      'servername': item.domain,
-      'documentroot': '/var/www/html',
-      'certificate_file': '/etc/letsencrypt/live/'~item.domain~'/fullchain.pem',
-      'certificate_key_file': '/etc/letsencrypt/live/'~item.domain~'/privkey.pem',
-      'extra_parameters': 'ProxyPreserveHost On\nProxyPass / http://0.0.0.0:'~item.port~'/\nProxyPassReverse / http://0.0.0.0:'~item.port~'/'
-      }] }}"
-  loop: "{{ sites }}"
-  loop_control:
-    label: "{{ item.id }}"
-
-- name: "Create domain list for certbot"
-  ansible.builtin.set_fact:
-    certbot_certs_mine: "{{ certbot_certs_mine|default([]) + [{
-      'domains': [item.domain],
-      'email': cert_bot_email
-      }] }}"
-  loop: "{{ sites }}"
-  loop_control:
-    label: "{{ item.id }}"
 #- name: "Print created vhosts settings"
 #  ansible.builtin.debug:
 #    msg: "{{ vhosts_mine }}"

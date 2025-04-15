@@ -7,7 +7,7 @@
 
 - name: "Check if there is a backup for site {{ site.id }}"
   ansible.builtin.command: >
-    restic -r "{{ site.backup.restic_backup_url }}" --tag "{{ site.id }}" --verbose 
+    restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
     snapshots --json
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
@@ -88,7 +88,7 @@
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
-    time restic -r "{{ site.backup.restic_backup_url }}" --verbose 
+    time restic -r "{{ site.backup.object_store.url }}" --verbose 
     restore --tag "{{ site.id }}" --target ./ "{{ snapshot_to_restore }}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"

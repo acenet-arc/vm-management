@@ -1,0 +1,36 @@
+- name: "Create vhosts settings for site domains"
+  ansible.builtin.set_fact:
+    vhosts_mine: "{{ vhosts_mine|default([]) + [{
+      'servername': domain,
+      'documentroot':'/var/www/html',
+      'extra_parameters': extra_vhost_parameters
+      }] }}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
+
+- name: "Create vhosts_ssl settings for site domains"
+  ansible.builtin.set_fact:
+    vhosts_ssl_mine: "{{ vhosts_ssl_mine|default([]) + [{
+      'servername': domain,
+      'documentroot': '/var/www/html',
+      'certificate_file': '/etc/letsencrypt/live/'~domain~'/fullchain.pem',
+      'certificate_key_file': '/etc/letsencrypt/live/'~domain~'/privkey.pem',
+      'extra_parameters': 'ProxyPreserveHost On\nProxyPass / http://0.0.0.0:'~site.port~'/\nProxyPassReverse / http://0.0.0.0:'~site.port~'/'
+      }] }}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
+    
+- name: "Create domains list for certbot"
+  ansible.builtin.set_fact:
+    certbot_certs_mine: "{{ certbot_certs_mine|default([]) + [{
+      'domains': [domain],
+      'email': cert_bot_email
+      }] }}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"

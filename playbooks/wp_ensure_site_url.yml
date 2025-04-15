@@ -18,7 +18,11 @@
 #  ansible.builtin.debug:
 #    msg: "{{ site_url_result }}"
 
-- name: "Update {{ site.id }}'s URL"
+#NOTE: I am just using the first domain in the site domains list,
+#What should be done in the case of a Wordpress multi-site setup?
+#So far this has been developed with a single site setup in mind, how might
+#that change if we wanted a multi-site setup
+- name: "Update {{ site.id }}'s site URL"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
@@ -27,9 +31,10 @@
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
     -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
-    wp option update siteurl "https://{{ site.domain }}"
-  when: site_url_result.stdout!="https://"~site.domain
-- name: "Update {{ site.id }}'s URL"
+    wp option update siteurl "https://{{ site.domains[0] }}"
+  when: site_url_result.stdout!="https://"~site.domains[0]
+  
+- name: "Update {{ site.id }}'s home URL"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
@@ -38,6 +43,6 @@
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
     -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
-    wp option update home "https://{{ site.domain }}"
-  when: site_url_result.stdout!="https://"~site.domain
+    wp option update home "https://{{ site.domains[0] }}"
+  when: site_url_result.stdout!="https://"~site.domains[0]
 
