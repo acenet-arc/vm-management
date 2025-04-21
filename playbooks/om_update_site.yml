@@ -21,7 +21,7 @@
 - ansible.builtin.set_fact:
     complete_theme_list: "{{ om_defaults.themes + site.om_settings.themes|default([]) }}"
     
-- name: "Upgrade theme {{ theme_name }} on {{ site.id }}"
+- name: "Upgrade themes on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"

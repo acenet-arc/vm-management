@@ -13,7 +13,7 @@
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
-  when: (not file.stat.exists) or (site.backup.backup_restore_snapshot_id is defined)
+  when: (not file.stat.exists) or (site.backup.restore_snapshot_id is defined)
   register: snapshotlist_result
   failed_when: false
   changed_when: false
@@ -21,7 +21,7 @@
 - name: "Parse backup snapshot list output into list"
   ansible.builtin.set_fact:
     snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
-  when: (not file.stat.exists) or (site.backup.backup_restore_snapshot_id is defined)
+  when: (not file.stat.exists) or (site.backup.restore_snapshot_id is defined)
 
 - name: "Display snapshot list"
   ansible.builtin.debug:
@@ -36,16 +36,21 @@
   ansible.builtin.set_fact:
     to_restore_requested: false
 
-- name: "Checking if we should restore because of an explicitly set backup_restore_snapshot_id"
+- name: "Checking if we should restore because of an explicitly set backup.restore_snapshot_id"
   ansible.builtin.set_fact:
     to_restore_requested: "{{ 
-    ( site.backup.backup_restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
-    (site.backup.backup_restore_snapshot_id in snapshotlist) }}"
-  when: site.backup.backup_restore_snapshot_id is defined
-
+    ( site.backup.restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
+    (site.backup.restore_snapshot_id in snapshotlist) }}"
+  when: site.backup.restore_snapshot_id is defined
+  
 - name: "Checking if we need to restore from backup"
   ansible.builtin.set_fact:
     to_restore: "{{ to_restore_missing or to_restore_requested }}"
+    
+- name: "Checking if restore_from_backup explicitly set"
+  ansible.builtin.set_fact:
+    to_restore: "{{ site.backup.restore_from_backup }}"
+  when: site.backup.restore_from_backup is defined
 
 - name: "Initialize snapshot_to_restore to 'latest'"
   ansible.builtin.set_fact:
@@ -54,15 +59,15 @@
 
 - name: "Set snapshot_to_restore to specific ID"
   ansible.builtin.set_fact:
-    snapshot_to_restore: "{{ site.backup.backup_restore_snapshot_id }}"
-  when: to_restore_requested and (site.backup.backup_restore_snapshot_id in snapshotlist)
+    snapshot_to_restore: "{{ site.backup.restore_snapshot_id }}"
+  when: to_restore_requested and (site.backup.restore_snapshot_id in snapshotlist)
 
-- name: "Verify requested backup_restore_snapshot_id in list of snapshots"
+- name: "Verify requested backup.restore_snapshot_id in list of snapshots"
   ansible.builtin.fail:
-    msg: "Requested backup_restore_snapshot_id={{ site.backup.backup_restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
+    msg: "Requested backup.restore_snapshot_id={{ site.backup.restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
   when: to_restore_requested and 
-    (site.backup.backup_restore_snapshot_id!='latest') and
-    (not (site.backup.backup_restore_snapshot_id in snapshotlist))
+    (site.backup.restore_snapshot_id!='latest') and
+    (not (site.backup.restore_snapshot_id in snapshotlist))
 
 - name: "Are we restoring from a backup?"
   ansible.builtin.debug:

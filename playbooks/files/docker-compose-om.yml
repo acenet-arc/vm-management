@@ -12,7 +12,7 @@ services:
       OMEKAS_DB_PASSWORD: ${DB_PASSWORD}
       OMEKAS_DB_NAME: ${DB_NAME}
     volumes:
-      - web:/var/www/html
+      - webv:/var/www/html
     depends_on:
       db:
         condition: service_healthy
@@ -26,20 +26,20 @@ services:
       MYSQL_PASSWORD:  ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
-      - db:/var/lib/mysql
+      - dbv:/var/lib/mysql
     healthcheck:
       test:  "mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME -e\"show tables;\""
       timeout: 30s
       retries: 100
 
 volumes:
-  web:
+  webv:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
       device: ./${SITE_NAME}/volumes/web
-  db:
+  dbv:
     driver: local
     driver_opts:
       type: 'none'

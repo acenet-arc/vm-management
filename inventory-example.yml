@@ -20,7 +20,7 @@ website_hosts:
   #  id: <a-unique-id-for-site>
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
-  #    backup_restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
+  #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
   #    object_store:
   #      url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
   #      key_id: access key id for object store
@@ -64,6 +64,7 @@ website_hosts:
   #      time_zone:
   #    themes: []
   #    modules: []
+  #    url_modules: [ {"url":"url to download zip from", "dir":"name of directory created form unziping", "name":"name of module"} ]
 
   hosts:
     <host-alias>:
@@ -73,7 +74,7 @@ website_hosts:
           id: omekatest
           backup:
             perform_backup: false
-            #backup_restore_snapshot_id: latest
+            #restore_snapshot_id: latest
             object_store:
               key_id: ""
               key: ""
@@ -100,7 +101,7 @@ website_hosts:
           id: wptest
           backup:
             perform_backup: true
-            #backup_restore_snapshot_id: latest
+            #restore_snapshot_id: latest
             object_store:
               key_id: ""
               key: ""

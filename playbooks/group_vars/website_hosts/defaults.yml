@@ -13,6 +13,7 @@ om_defaults:
   cli_image:  "omeka-s-cli:latest"
   themes: ["default"]
   modules: ["Lockout"]
+  url_modules: []
   active_modules: ["Lockout"]
   modules_dir_writeable: false
   themes_dir_writeable: false
