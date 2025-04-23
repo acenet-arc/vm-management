@@ -2,7 +2,9 @@ services:
   
   web:
     image: omeka-s:latest
-    build: ./
+    build: 
+      context: ./
+      dockerfile: Dockerfile_om
     restart: always
     ports:
       - ${LOCAL_PORT}:80

@@ -47,24 +47,29 @@
         group: "{{ ansible_user }}"
       loop:
         - docker-compose-om.yml
-        - Dockerfile
         - docker-entrypoint.sh
       register: copy_om_supporting_files
       
-    - name: "Copy Omeka-S-cli supporting files"
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "/home/{{ ansible_user }}/{{ item }}"
-        owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"
-      loop:
-        - Dockerfile_om_cli
-      register: copy_om_cli_supporting_files
+    - name: "Create Omeka-S Dockerfile"
+      ansible.builtin.template:
+        src: Dockerfile_om.j2
+        dest: "/home/{{ ansible_user }}/Dockerfile_om"
+        owner:  "{{ ansible_user }}"
+        group:  "{{ ansible_user }}"
+      register: create_om_dockerfile
+      
+    - name: "Create Omeka-S CLI Dockerfile"
+      ansible.builtin.template:
+        src: Dockerfile_om_cli.j2
+        dest: "/home/{{ ansible_user }}/Dockerfile_om_cli"
+        owner:  "{{ ansible_user }}"
+        group:  "{{ ansible_user }}"
+      register: create_om_cli_dockerfile
       
     - name: "Ensure Omeka-S CLI docker image built"
       ansible.builtin.include_tasks:
         file: om_build_cli_image.yml
-      when: copy_om_cli_supporting_files.changed
+      when: create_om_cli_dockerfile.changed
       
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:

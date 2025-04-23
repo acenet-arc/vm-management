@@ -17,3 +17,5 @@ om_defaults:
   active_modules: ["Lockout"]
   modules_dir_writeable: false
   themes_dir_writeable: false
+  base_docker_image: php:8.1-apache
+  omeka_s_version: "4.0.4"
