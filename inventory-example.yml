@@ -3,17 +3,19 @@
 all:
   
   vars:
-    ansible_user: ""
     ansible_connection: ssh
-    ansible_user: "{{ default_ansible_user }}"
   hosts:
     <host-alias>: 
       ansible_host: <ip-adress>
 
+ubuntu:
+  hosts:
+    <host-alias>:
+
 website_hosts:
   #Default vales for host vars should be used if a value is not specified 
   #below. See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets.yml
-
+  
   #site vars which may be set
   #- domain: "testansible9.ace-net.training"
   #  port: <port-number-used-by-docker>
@@ -53,6 +55,7 @@ website_hosts:
   #      force_ssl_admin: <force-admin-to-use-ssl>
   #    themes: <list-of-theme-names-to-ensure-are-installed>
   #    plugins: <list-of-plugin-names-to-ensure-are-installed>
+  #    active_plugins: <list-of-plugin-names-to-ensure-are-activated>
   #
   #  #If site is an omeka site include these settings
   #  om_settings:
@@ -69,7 +72,7 @@ website_hosts:
   hosts:
     <host-alias>:
       sites:
-        - domain: ""
+        - domain: [""]
           port: 8081
           id: omekatest
           backup:
@@ -96,7 +99,7 @@ website_hosts:
             themes: []
             modules: []
        
-        - domain: ""
+        - domain: [""]
           port: 8080
           id: wptest
           backup:
@@ -122,3 +125,4 @@ website_hosts:
             config:
               dissallow_file_mods: false
             themes: []
+            plugins: []

@@ -1,0 +1,34 @@
+- name: "Set file permissions for wp-config.php"
+  ansible.builtin.file:
+    path: "{{ site.id }}/volumes/web/wp-config.php"
+    owner: "{{ ansible_user }}"
+    group: www-data
+    mode:  u=r,g=r,o=
+
+- name: "Set file permissions for .htaccess"
+  ansible.builtin.file:
+    path: "{{ site.id }}/volumes/web/.htaccess"
+    owner: "{{ ansible_user }}"
+    group: www-data
+    mode: u=r,g=r,o=
+
+- name: "Set file permissions for index.php"
+  ansible.builtin.file:
+    path: "{{ site.id }}/volumes/web/index.php"
+    owner: "{{ ansible_user }}"
+    group: www-data
+    mode: u=r,g=r,o=
+    
+- name: "Set file permissions for wp-admin/ directory"
+  ansible.builtin.file:
+    path: "{{ site.id }}/volumes/web/wp-admin/"
+    owner: "{{ ansible_user }}"
+    group: www-data
+    mode: u=wrx,g=rx,o=rx
+    
+- name: "Set file permissions for wp-includes/ directory"
+  ansible.builtin.file:
+    path: "{{ site.id }}/volumes/web/wp-includes/"
+    owner: "{{ ansible_user }}"
+    group: www-data
+    mode: u=wrx,g=rx,o=rx

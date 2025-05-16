@@ -14,7 +14,6 @@
   ansible.builtin.include_tasks:
     file: make_site_directories_as_needed.yml
 
-
 - name: "Compose down if supporting files changed"
   ansible.builtin.include_tasks:
     file: compose_down.yml
@@ -28,6 +27,10 @@
   ansible.builtin.include_tasks:
     file: load_database.yml
   when: restored[site.id]
+  
+- name: "Ensure correct file permissions for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: wp_ensure_file_permissions.yml
   
 - name: "Install Wordpress core for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
@@ -68,7 +71,7 @@
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
   when: htaccess_result.changed
-
+  
 - name: "Backup Wordpress site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: restic_backup_site.yml
