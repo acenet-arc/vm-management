@@ -49,3 +49,11 @@
     owner: "www-data"
     group: "www-data"
     mode: 0400
+    
+- name: "Set permissions on web/files"
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web/files"
+    state: directory
+    owner: "www-data"
+    group: "{{ ansible_user }}"
+    mode: 0775
