@@ -1,0 +1,9 @@
+- name: "Check if modules need database updated on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module update-db {{ module_name }}
+  loop: "{{ complete_module_list }}"
+  loop_control:
+    loop_var: module_name
+  when: ( current_modules[module_name]['state']== "needs_upgrade" )
