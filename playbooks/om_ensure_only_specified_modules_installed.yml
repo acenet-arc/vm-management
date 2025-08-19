@@ -76,7 +76,11 @@
   
 #- ansible.builtin.debug:
 #    msg: "complete_module_list={{ complete_module_list }}"
-  
+
+- name: "Update modules in database if needed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_update_module_db_if_needed.yml
+    
 - name: "Install specified modules not installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 

@@ -29,5 +29,9 @@
   loop: "{{ complete_theme_list }}"
   loop_control:
     loop_var: theme_name
-    
+  
+- name: "Update modules in database if needed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_update_module_db_if_needed.yml
+  
 # docker run --rm --volumes-from omekatest-web-1 --network container:omekatest-web-1 omeka-s-cli omeka-s-cli core upgrade -f
