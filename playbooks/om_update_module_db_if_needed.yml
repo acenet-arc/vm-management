@@ -6,4 +6,4 @@
   loop: "{{ complete_module_list }}"
   loop_control:
     loop_var: module_name
-  when: ( current_modules[module_name]['state']== "needs_upgrade" )
+  when: (module_name in current_modules) and ( current_modules[module_name]['state']== "needs_upgrade" )

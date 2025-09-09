@@ -90,3 +90,6 @@
         label: "{{ item.id }}"
       vars:
         site: "{{ item }}"
+        
+    - name: "Remove dangling docker images"
+      ansible.builtin.command: docker image prune -f
