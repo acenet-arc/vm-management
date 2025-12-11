@@ -31,4 +31,4 @@
     path: "{{ site.id }}/volumes/web/wp-includes/"
     owner: "{{ ansible_user }}"
     group: www-data
-    mode: u=wrx,g=rx,o=rx
+    mode: u=wrx,g=wrx,o=rx
