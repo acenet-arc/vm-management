@@ -17,7 +17,7 @@ website_hosts:
   #below. See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets.yml
   
   #site vars which may be set
-  #- domain: "testansible9.ace-net.training"
+  #- domains: "testansible9.ace-net.training"
   #  port: <port-number-used-by-docker>
   #  id: <a-unique-id-for-site>
   #  backup:
@@ -72,7 +72,7 @@ website_hosts:
   hosts:
     <host-alias>:
       sites:
-        - domain: [""]
+        - domains: [""]
           port: 8081
           id: omekatest
           backup:
@@ -99,7 +99,7 @@ website_hosts:
             themes: []
             modules: []
        
-        - domain: [""]
+        - domains: [""]
           port: 8080
           id: wptest
           backup:
