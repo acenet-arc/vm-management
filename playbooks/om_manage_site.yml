@@ -1,4 +1,4 @@
-- name: "Managinag OmekaS Site {{ site.id }}"
+- name: "Managing OmekaS Site {{ site.id }}"
   ansible.builtin.debug:
     msg: "Managing {{ site.id }}"
 
