@@ -10,8 +10,8 @@ RUN set -ex; \
 
 VOLUME /var/www/html
 
-#Install Omeka CLI from Libnamic, also replace 'human' mode with 'raw' mode to make it easier to interpret output with ansible.
-RUN curl -fL -o /tmp/omeka-s-cli.zip https://github.com/acenet-arc/omeka-s-cli/archive/refs/heads/main.zip; cd /opt; unzip /tmp/omeka-s-cli.zip; ln -s /opt/omeka-s-cli-main/omeka-s-cli.php /usr/bin/omeka-s-cli; rm /tmp/omeka-s-cli.zip; #REDO9
+#Install Omeka CLI
+RUN curl -fL -o /usr/bin/omeka-s-cli {{ om_defaults.cli_url }};chmod +x /usr/bin/omeka-s-cli
 
 CMD ["/bin/bash"]
 

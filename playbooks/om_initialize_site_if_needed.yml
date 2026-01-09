@@ -2,9 +2,9 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli core version
+    omeka-s-cli core:status
   register: omeka_site_initialized_result
-  failed_when: false
+  failed_when: omeka_site_initialized_result.rc != 0
   changed_when: false
   
 - name: "Initlize site {{ site.id }}"
@@ -21,4 +21,4 @@
     --data-urlencode "settings[time_zone]={{ site.om_settings.initial.time_zone }}"
     --data-urlencode "settings[locale]="
     http://localhost/install
-  when: omeka_site_initialized_result.stdout | length == 0
+  when: "'not_installed' in omeka_site_initialized_result.stdout"

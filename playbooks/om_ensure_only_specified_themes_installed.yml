@@ -2,52 +2,51 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli theme list -j
+    omeka-s-cli theme:list --json
   register: theme_list_result
   failed_when: false
   changed_when: false
 
-#- ansible.builtin.debug:
-#    msg: "theme_list_result={{ theme_list_result.stdout_lines[-1] | from_json}}"
-#  when: theme_list_result.stdout_lines is defined and
-##    (theme_list_result.stdout_lines|length >0) and 
-#    (theme_list_result.stdout_lines[-1][-1]=="}")
-  
-- ansible.builtin.set_fact:
-    current_themes: "{{ {} }}"
-  
-- ansible.builtin.set_fact:
-    current_themes: "{{ theme_list_result.stdout_lines[-1] | from_json }}"
-  when: theme_list_result.stdout_lines is defined and
-    (theme_list_result.stdout_lines|length >0) and 
-    (theme_list_result.stdout_lines[-1][-1]=="}")
+- name: "Create list of current theme ids"
+  ansible.builtin.set_fact:
+    current_theme_ids: "{{ current_theme_ids|default([]) + [ theme_info.id ] }}"
+  loop: "{{ theme_list_result.stdout | from_json }}"
+  loop_control:
+    loop_var: theme_info
 
-- ansible.builtin.set_fact:
-    current_theme_list: "{{ current_themes.keys() | list }}"
-- ansible.builtin.debug:
-    msg: "current_theme_list={{current_theme_list}}"
-
-- ansible.builtin.set_fact:
+- name: "Create list of specified theme ids for {{ site.id }}"
+  ansible.builtin.set_fact:
     complete_theme_list: "{{ om_defaults.themes + site.om_settings.themes|default([]) }}"
-    
+
 - name: "Install specified themes not installed on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli theme download {{ theme_name }} -f
+    omeka-s-cli theme:download {{ theme_id }} -f
   loop: "{{ complete_theme_list }}"
   loop_control:
-    loop_var: theme_name
-  when: not theme_name in current_theme_list
+    loop_var: theme_id
+  when: not theme_id in current_theme_ids
 
-#TODO: somehow set active theme to default if active theme is one to be removed, turns out this is hard to do especially on a multi-site
-  
+- name: "Remove unspecified themes for {{ site.id }}?"
+  ansible.builtin.set_fact:
+    remove_unspecified_themes: "{{ site.om_settings.remove_unspecified_themes|default(om_defaults.remove_unspecified_themes) }}"
+
+- name: "Check if any unspecified themes installed on {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "{{ theme_id }}"
+  loop: "{{ current_theme_ids }}"
+  loop_control:
+    loop_var: theme_id
+  failed_when: not theme_id in complete_theme_list
+  when: remove_unspecified_themes!=True
+
 - name: "Remove unspecified themes on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli theme delete {{ theme_name }}
-  loop: "{{ current_theme_list }}"
+    omeka-s-cli theme:delete {{ theme_id }}
+  loop: "{{ current_theme_ids }}"
   loop_control:
-    loop_var: theme_name
-  when: not theme_name in complete_theme_list
+    loop_var: theme_id
+  when: not theme_id in complete_theme_list and remove_unspecified_themes==True

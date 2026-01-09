@@ -1,9 +1,14 @@
+---
+- name: "Get current module info for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_get_current_module_infos.yml
+
 - name: "Check if modules need database updated on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli module update-db {{ module_name }}
-  loop: "{{ complete_module_list }}"
+    omeka-s-cli module:upgrade {{ module_info.id }}
+  loop: "{{ current_module_infos }}"
   loop_control:
-    loop_var: module_name
-  when: (module_name in current_modules) and ( current_modules[module_name]['state']== "needs_upgrade" )
+    loop_var: module_info
+  when: module_info.state=="needs_upgrade"

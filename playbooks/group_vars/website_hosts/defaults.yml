@@ -18,4 +18,7 @@ om_defaults:
   modules_dir_writeable: false
   themes_dir_writeable: false
   base_docker_image: php:8.1-apache
+  cli_url: "https://github.com/GhentCDH/Omeka-S-Cli/releases/download/v0.9.0/omeka-s-cli.phar"
   omeka_s_version: "4.0.4"
+  remove_unspecified_themes: False
+  remove_unspecified_modules: False

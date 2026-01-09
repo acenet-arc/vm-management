@@ -4,7 +4,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli core upgrade -f
+    omeka-s-cli core:update
 
 - name: "Update database after upgrade of site {{ site.id }}"
   ansible.builtin.command: >
@@ -12,11 +12,22 @@
     --network container:"{{ site.id }}"-web-1 --user 33:33 "{{ om_defaults.cli_image }}"
     curl --data-urlencode "submit="  http://localhost/migrate
 
-- name: "Upgrade modules on {{ site.id }}"
+- name: "Update modules in database if needed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_update_module_db_if_needed.yml
+
+- name: "Get current module info for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_get_current_module_infos.yml
+
+- name: "Update modules on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli module update --all
+    omeka-s-cli module:update "{{ module_info.id }}"
+  loop: "{{current_module_infos}}"
+  loop_control:
+    loop_var: module_info
 
 - ansible.builtin.set_fact:
     complete_theme_list: "{{ om_defaults.themes + site.om_settings.themes|default([]) }}"
@@ -25,7 +36,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli theme update "{{ theme_name }}"
+    omeka-s-cli theme:download "{{ theme_name }}" --force
   loop: "{{ complete_theme_list }}"
   loop_control:
     loop_var: theme_name
