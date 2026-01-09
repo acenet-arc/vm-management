@@ -28,6 +28,7 @@
   loop: "{{current_module_infos}}"
   loop_control:
     loop_var: module_info
+  when: module_info.updateAvailable==True
 
 - ansible.builtin.set_fact:
     complete_theme_list: "{{ om_defaults.themes + site.om_settings.themes|default([]) }}"
