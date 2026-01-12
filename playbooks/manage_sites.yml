@@ -6,11 +6,11 @@
   become_method: sudo
   gather_facts: true
   
-  #roles:
-  #  - role: dockerhost
-  #    vars:
-  #      docker_users:
-  #        - "{{ ansible_user }}"
+  roles:
+    - role: dockerhost
+      vars:
+        docker_users:
+          - "{{ ansible_user }}"
   
   tasks:
     
