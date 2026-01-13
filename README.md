@@ -34,7 +34,7 @@ If the `authorized_keys` file on the managed VMs needs to be changed, the [`play
 
 ## Object store setup
 
-Backups are saved to a container in Object store. To set it up:
+Backups are saved to a container in Object store using the backup tool [restic](https://restic.readthedocs.io/en/latest/manual_rest.html). Restic encrypts backups using AES-256 in counter mode and authenticated using Poly1305-AES, see [https://restic.readthedocs.io/en/latest/design.html#keys-encryption-and-mac](Keys, Encryption and MAC). To set it up:
 
   1. Create storage access ID and secrete key: (see: [Establishing access to your Arbutus Object Store](https://docs.alliancecan.ca/wiki/Arbutus_object_storage#Establishing_access_to_your_Arbutus_Object_Store) )
   2. Create a new container to store restic backups using the "Containers" pane under "Object Store" left hand menu item.
