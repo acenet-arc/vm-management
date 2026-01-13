@@ -10,8 +10,10 @@ RUN set -ex; \
 
 VOLUME /var/www/html
 
+#Use production php configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 #Install Omeka CLI
 RUN curl -fL -o /usr/bin/omeka-s-cli {{ om_defaults.cli_url }};chmod +x /usr/bin/omeka-s-cli
 
 CMD ["/bin/bash"]
-

@@ -52,3 +52,5 @@
 - name: "Update containers"
   ansible.builtin.include_tasks:
     file: compose_update.yml
+  vars:
+    services: "web db"

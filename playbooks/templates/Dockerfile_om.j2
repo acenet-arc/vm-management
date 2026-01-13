@@ -10,6 +10,9 @@ RUN set -ex; \
     zip \
   ;
 
+#Use production php configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 RUN a2enmod rewrite
 
 VOLUME /var/www/html

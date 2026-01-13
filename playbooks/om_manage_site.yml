@@ -17,7 +17,7 @@
 - name: "Compose down if supporting files changed"
   ansible.builtin.include_tasks:
     file: compose_down.yml
-  when: copy_om_supporting_files.changed
+  when: copy_om_supporting_files.changed or create_om_dockerfile.changed
 
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:

@@ -57,7 +57,7 @@ website_hosts:
   #    plugins: <list-of-plugin-names-to-ensure-are-installed>
   #    active_plugins: <list-of-plugin-names-to-ensure-are-activated>
   #
-  #  #If site is an omeka site include these settings
+  #  #If site is an omeka-s site include these settings
   #  om_settings:
   #    initial:
   #      admin_email:
@@ -66,6 +66,8 @@ website_hosts:
   #      title:
   #      time_zone:
   #    themes: []
+  #    remove_unspecified_modules: True/False will remove modules not specified, default is False
+  #    remove_unspecified_themes: True/False will remove themes not specified, default is False
   #    modules: []
   #    url_modules: [ {"url":"url to download zip from", "dir":"name of directory created form unziping", "name":"name of module"} ]
 
@@ -96,6 +98,8 @@ website_hosts:
               admin_password: ""
               title: ""
               time_zone: "UTC"
+            remove_unspecified_modules: False
+            remove_unspecified_themes: False
             themes: []
             modules: []
        

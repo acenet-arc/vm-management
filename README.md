@@ -96,6 +96,7 @@ The same [`playbooks/manage_sites.yml`](playbooks/manage_sites.yml) playbook bot
 
   `$ ansible-playbook -i ./inventory.yml -l website_hosts ./playbooks/manage_sites.yml`
 
+NOTE: to update the version of php used on Omeka-S sites, `base_docker_image` in `group_vars/website_hosts/defaults.yml` should be updated to the most recent php docker image available.
 
 ### Adding a new site to a host
 The `port` number must be unique from other site `port` values on that host VM.

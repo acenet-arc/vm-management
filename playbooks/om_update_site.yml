@@ -45,5 +45,11 @@
 - name: "Update modules in database if needed for {{ site.id }}"
   ansible.builtin.include_tasks:
     file: om_update_module_db_if_needed.yml
-  
+
+- name: "Update containers"
+  ansible.builtin.include_tasks:
+    file: compose_update.yml
+  vars:
+    services: "db"
+
 # docker run --rm --volumes-from omekatest-web-1 --network container:omekatest-web-1 omeka-s-cli omeka-s-cli core upgrade -f
