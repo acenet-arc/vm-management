@@ -1,0 +1,61 @@
+---
+all:
+
+  vars:
+    ansible_connection: ssh
+  hosts:
+    mybastion:
+      ansible_host: mybastion
+
+ubuntu:
+  hosts:
+    mybastion:
+
+# Some examples of proxy blocks:
+# - the model is: proxy host sits in front of any number of other VMs and/or services
+# - first includes a local service, second shows restricted access to a Wordpress admin interface
+# - should probably put an index.html in the local root, e.g. redirecting to one of the proxied services
+# - multiple locations for each application work, e.g. 'slash' 'login' 'logout', etc. - application dependant
+# - see redirect blocks below, based on standard 'Certbot' managed clauses - do one for each domain
+# - 'group_vars/proxy_hosts.yml' contains the certificate location and standard nginx proxy blocks - can override here
+# - most of the work is done in the jinja2 templates
+proxy_hosts:
+  hosts:
+    mybastion:
+      ansible_host: mybastion
+      nginx_vhosts:
+        - listen: "443 ssl"
+          server_name: "exampledomain.com  exampledomain.ca <cc-cloud-standard-dns>.cloud.computecanada.ca"
+          root: "/var/www/html/"
+          state: "present"
+          template: "proxy_vhost.j2"
+          filename: "<cc-cloud-standard-dns>.cloud.computecanada.ca"
+          locations:
+            grafana: |
+              proxy_pass http://127.0.0.1:3000;
+              allow <some IP>;
+              allow <another IP>;
+              deny all;
+        - listen: "443 ssl"
+          server_name: "sub1.exampledomain.com  sub1.exampledomain.ca"
+          state: "present"
+          template: "proxy_vhost.j2"
+          filename: "sub1.exampledomain.ca"
+          locations:
+            slash: |
+                proxy_pass https://sub1/;
+            wp-admin: |
+                proxy_pass https://sub1/wp-admin;
+                allow <some IP>;
+                allow <another IP>;
+                deny all;
+        - listen: "80"
+          server_name: "<cc-cloud-standard-dns>.cloud.computecanada.ca exampledomain.com exampledomain.ca"
+          filename: "<cc-cloud-standard-dns>.cloud.computecanada.ca.80"
+          state: "present"
+          template: "proxy_vhost_redirect.j2"
+        - listen: "80"
+          server_name: "sub1.exampledomain.com sub1.exampledomain.ca"
+          filename: "sub1.exampledomain.ca.80"
+          state: "present"
+          template: "proxy_vhost_redirect.j2"

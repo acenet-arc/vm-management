@@ -1,0 +1,22 @@
+---
+
+- name: "Include Geerlingguy Nginx Role"
+  ansible.builtin.include_role:
+    name: geerlingguy.nginx
+  vars:
+    nginx_package_name: "nginx,nginx-core"
+    nginx_remove_default_vhost: true
+    nginx_listen_ipv6: false
+
+- name: "Include Geerlingguy Certbot Role"
+  ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_install_method: package
+    certbot_package: "certbot,python3-certbot-nginx"
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_hsts: true
+#    certbot_admin_email: "{{ cert_bot_email }}"
+#    certbot_certs: "{{ certbot_certs_mine }}"

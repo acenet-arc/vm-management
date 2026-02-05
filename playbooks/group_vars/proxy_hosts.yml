@@ -1,0 +1,26 @@
+---
+
+# - adjust to suit - these proxy settings work with a range of applications, including Wordpress and Omeka S
+# - the commented certificate material is as Certbot does
+index: "index.html"
+location_proxy_settings: |
+      proxy_http_version 1.1;
+      proxy_buffering off;
+      proxy_read_timeout    90;
+      proxy_connect_timeout 90;
+      proxy_redirect        off;
+      proxy_set_header Host $host;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header Proxy "";
+server_ssl_settings: |
+      ssl_certificate /etc/ssl/certs/nginx.crt;
+      ssl_certificate_key /etc/ssl/private/nginx.key;
+#      ssl_certificate /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/fullchain.pem;
+#      ssl_certificate_key /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/privkey.pem;
+#      include /etc/letsencrypt/options-ssl-nginx.conf;
+#      ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
