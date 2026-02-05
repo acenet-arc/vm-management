@@ -1,0 +1,42 @@
+server {
+{% block server_begin %}{% endblock %}
+{% if item.server_name is defined %}
+    server_name {{ item.server_name }};
+{% endif -%}
+{% if item.root is defined %}
+    root {{ item.root }};
+{% endif %}
+    index {{ index | default('index.html index.htm') }};
+{% if item.error_page is defined -%}
+    error_page {{ item.error_page }};
+{% endif %}
+{% if item.access_log is defined -%}
+    access_log {{ item.access_log }};
+{% endif %}
+{% if item.error_log is defined -%}
+    error_log {{ item.error_log }} error;
+{% endif %}
+{% if item.return is defined -%}
+    return {{ item.return }};
+{% endif %}
+{% block server_locations %}{% endblock %}
+{% if item.locations is defined %}
+{% for key, value in item.locations.items() %}
+{% if key == "slash" %}
+    location / {
+{% else %}
+    location /{{ key }} {
+{% endif -%}
+{{ value|indent(8, first=True) }}
+{% if location_proxy_settings is defined and "proxy_pass" in location_proxy_settings -%}
+{{ location_proxy_settings|indent(8, first=True) }}
+{% endif %}
+    }
+{% endfor -%}
+{% endif -%}
+{% block server_end %}{% endblock %}
+    listen {{ item.listen | default('443') }};
+{% if server_ssl_settings is defined -%}
+{{ server_ssl_settings|indent(4, first=True) }}
+{% endif -%}
+}

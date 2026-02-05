@@ -1,0 +1,13 @@
+server {
+{% for host in item.server_name.split() %}
+    if ($host = {{ host }}) {
+        return 301 https://$host$request_uri;
+    }
+{% endfor %}
+    server_name {{ item.server_name }};
+    listen {{ item.listen | default('80') }};
+{% if nginx_listen_ipv6 %}
+    listen       [::]:{{item.listen | default('80') }};
+{% endif %}
+    return 404;
+}
