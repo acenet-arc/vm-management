@@ -75,7 +75,11 @@ website_hosts:
   #    remove_unspecified_themes: True/False will remove themes not specified 
   #      if True. Default is False.
   #    themes: []
-  #    modules: [{"id":"<id-of-theme>","url":"<optional-url-to-download-zip-from>","active":True/False}]
+  #    modules: [
+  #     {   "id":"<id-of-theme>",
+  #        "url":"<optional-url-to-download-zip-from>",
+  #     "active":True/False,
+  #     "update":True/False}]
 
   hosts:
     <host-alias>:
