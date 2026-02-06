@@ -9,15 +9,17 @@ wp_defaults:
   themes: [twentytwentythree]
   plugins: [limit-login-attempts-reloaded]
   active_plugins: [limit-login-attempts-reloaded]
+  remove_unspecified_themes: False
+  remove_unspecified_plugins: False
 om_defaults:
   cli_image:  "omeka-s-cli:latest"
   themes: ["default"]
-  modules: ["Lockout"]
-  url_modules: []
+  modules: 
+    - {"id":"Lockout"}
   active_modules: ["Lockout"]
   modules_dir_writeable: false
   themes_dir_writeable: false
-  base_docker_image: php:8.5.1-apache
+  base_docker_image: php:8.5.2-apache
   cli_url: "https://github.com/GhentCDH/Omeka-S-Cli/releases/download/v0.9.0/omeka-s-cli.phar"
   omeka_s_version: "4.2.0"
   remove_unspecified_themes: False

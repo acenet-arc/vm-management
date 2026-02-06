@@ -1,0 +1,62 @@
+---
+
+- name: "Get list of modules on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:list --json
+  register: module_list_result
+  failed_when: false
+  changed_when: false
+
+- name: "Create module list from json"
+  ansible.builtin.set_fact:
+    current_module_infos: "{{ module_list_result.stdout | from_json }}"
+  when: module_list_result.stdout != ""
+
+- name: "Initialize specified_module_ids to empty list"
+  ansible.builtin.set_fact:
+    specified_module_ids: []
+    
+- name: "Create list of specified module ids"
+  ansible.builtin.set_fact:
+    specified_module_ids: "{{ specified_module_ids|default([]) + [ module.id ] }}"
+  loop: "{{ specified_module_list }}"
+  loop_control:
+    loop_var: module
+
+- name: "Remove unspecified modules for {{ site.id }}?"
+  ansible.builtin.set_fact:
+    remove_unspecified_modules: "{{ site.om_settings.remove_unspecified_modules|default(om_defaults.remove_unspecified_modules) }}"
+
+- name: "Initialize unspecified_module_ids to empty list"
+  ansible.builtin.set_fact:
+    unspecified_module_ids: []
+
+- name: "Check if any unspecified modules installed on {{ site.id }}"
+  ansible.builtin.set_fact:
+    unspecified_module_ids: "{{ unspecified_module_ids|default([])+[module_info.id] }}"
+  loop: "{{ current_module_infos }}"
+  loop_control:
+    loop_var: module_info
+  when: module_info.id not in specified_module_ids
+
+- name: "Remove unspecified modules?"
+  ansible.builtin.debug:
+    msg: "remove_unspecified_modules={{remove_unspecified_modules}}"
+
+- name: "Display unspecified modules"
+  ansible.builtin.debug:
+    msg: "unspecified_module_ids={{ unspecified_module_ids }} should be added to modules list in inventory OR removed by specifying remove_unspecified_modules: True and re-running."
+  failed_when: remove_unspecified_modules!=True
+  when: unspecified_module_ids|length>0
+
+- name: "Remove unspecified modules on {{ site.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:delete {{ module_id }} -f
+  loop: "{{ unspecified_module_ids }}"
+  loop_control:
+    loop_var: module_id
+  when: remove_unspecified_modules

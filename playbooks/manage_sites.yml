@@ -11,6 +11,7 @@
       vars:
         docker_users:
           - "{{ ansible_user }}"
+      when: (debug is undefined) or (debug==False)
   
   tasks:
     

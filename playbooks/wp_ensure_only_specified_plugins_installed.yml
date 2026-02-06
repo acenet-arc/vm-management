@@ -45,6 +45,19 @@
     loop_var: plugin_name
   when: not plugin_name in plugin_name_list
 
+- name: "Remove unspecified plugins for {{ site.id }}?"
+  ansible.builtin.set_fact:
+    remove_unspecified_plugins: "{{ site.wp_settings.remove_unspecified_plugins|default(wp_defaults.remove_unspecified_plugins) }}"
+
+- name: "Check if any unspecified plugins installed on {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "{{ plugin_name }}"
+  loop: "{{ plugin_name_list }}"
+  loop_control:
+    loop_var: plugin_name
+  failed_when: not plugin_name in complete_plugin_list
+  when: remove_unspecified_plugins!=True
+    
 - name: "Remove unspecified plugins on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
@@ -58,7 +71,7 @@
   loop: "{{ plugin_name_list }}"
   loop_control:
     loop_var: plugin_name
-  when: not plugin_name in complete_plugin_list
+  when: not plugin_name in complete_plugin_list and remove_unspecified_plugins==True
 
 - name: "Activate specified plugins {{ site.id }}"
   ansible.builtin.command: >

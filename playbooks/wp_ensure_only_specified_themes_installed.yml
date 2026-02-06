@@ -80,6 +80,19 @@
   when: (not active_theme_name in complete_theme_list) and
     active_theme_name != None
 
+- name: "Remove unspecified themes for {{ site.id }}?"
+  ansible.builtin.set_fact:
+    remove_unspecified_themes: "{{ site.wp_settings.remove_unspecified_themes|default(wp_defaults.remove_unspecified_themes) }}"
+
+- name: "Check if any unspecified themes installed on {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "{{ theme_name }}"
+  loop: "{{ theme_name_list }}"
+  loop_control:
+    loop_var: theme_name
+  failed_when: not theme_name in complete_theme_list
+  when: remove_unspecified_themes!=True
+    
 - name: "Remove unspecified themes on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
@@ -93,5 +106,5 @@
   loop: "{{ theme_name_list }}"
   loop_control:
     loop_var: theme_name
-  when: not theme_name in complete_theme_list
+  when: not theme_name in complete_theme_list and remove_unspecified_themes==True
   

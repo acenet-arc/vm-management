@@ -1,0 +1,105 @@
+---
+
+- name: "Check we don't have both a version and a url specified for module"
+  ansible.builtin.debug:
+    msg: "Can't specify a version and a url at the same time for a module"
+  when: ("version" in module.keys()) and ("url" in module.keys())
+  failed_when: ("version" in module.keys()) and ("url" in module.keys())
+
+- name: "Get module {{ module.id}}'s status"
+  ansible.builtin.include_tasks:
+    file: om_get_module_status.yml
+
+- name: "Initlize version_postfix to empty string"
+  ansible.builtin.set_fact:
+    version_postfix: ""
+
+- name: "Initialize needs_new_version_downloaded to False"
+  ansible.builtin.set_fact:
+    needs_new_version_downloaded: False
+    
+- name: "Check if new version needs to be downloaded"
+  ansible.builtin.set_fact:
+    needs_new_version_downloaded: True
+  when: ("version" in module.keys() ) and ( not module_status or module_status["version"]!=module["version"])
+
+- name: "Set version_postfix if version specified"
+  ansible.builtin.set_fact:
+    version_postfix: ":{{ module['version'] }}"
+  when: needs_new_version_downloaded
+
+- name: "Uninstall existing module {{ module.id }} to change version"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:uninstall {{ module.id }}
+  when: needs_new_version_downloaded and module_status
+
+- name: "Download module {{ module.id }} from external databases"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:download {{ module.id }}{{ version_postfix }} --force
+  when: ((not module_status) and ("url" not in module.keys())) or needs_new_version_downloaded
+
+- name: "Download module {{ module.id }} via URL"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:download {{ module.url }}
+  when: (not module_status) and ("url" in module.keys())
+
+- name: "Get module {{ module.id }}'s status"
+  ansible.builtin.include_tasks:
+    file: om_get_module_status.yml
+  when: not module_status
+
+- name: "Installing module {{ module.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:install {{ module.id }}
+  when: module_status['state']=='not_installed'
+
+- name: "Get module {{ module.id}}'s status"
+  ansible.builtin.include_tasks:
+    file: om_get_module_status.yml
+  when: module_status['state']=='not_installed'
+
+- name: "Update module {{ module.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:update "{{ module.id }}"
+  when: module_status['updateAvailable']==True and ( ("update" not in module.keys()) or (module["update"]==True) )
+
+- name: "Get module {{ module.id}}'s status"
+  ansible.builtin.include_tasks:
+    file: om_get_module_status.yml
+  when: module_status['updateAvailable']==True
+
+- name: "Upgrade active module {{ module.id }}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:upgrade {{ module.id }}
+  when: module_status['state']=='needs_upgrade'
+
+- name: "Get module {{ module.id}}'s status"
+  ansible.builtin.include_tasks:
+    file: om_get_module_status.yml
+  when: module_status['state']=='needs_upgrade'
+
+- name: "Enable module {{module.id}}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:enable {{ module.id }}
+  when: module_status['state']=='not_active' and ( module.active is undefined or module.active==True)
+
+- name: "Disable module {{module.id}}"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:disable {{ module.id }}
+  when: module_status['state']=='active' and module.active is defined and module.active==False

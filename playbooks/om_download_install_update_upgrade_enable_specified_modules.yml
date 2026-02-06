@@ -1,0 +1,15 @@
+---
+
+- name: "Combine specified and default module lists"
+  ansible.builtin.set_fact:
+    specified_module_list: "{{ om_defaults.modules + site.om_settings.modules|default([]) }}"
+
+- ansible.builtin.debug:
+    msg: "specified_module_list={{ specified_module_list }}"
+
+- name: "Download, install, upgrade, update, and enable specified modules on {{ site.id }} as needed"
+  ansible.builtin.include_tasks:
+    file: om_download_install_update_upgrade_enable_module.yml
+  loop: "{{ specified_module_list }}"
+  loop_control:
+    loop_var: module

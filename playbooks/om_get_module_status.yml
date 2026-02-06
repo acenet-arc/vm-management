@@ -1,0 +1,23 @@
+---
+
+- name: "Get module {{ module.id }}'s status"
+  ansible.builtin.command: >
+    docker run --rm --volumes-from "{{ site.id }}"-web-1 
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli module:status --json "{{ module.id}}"
+  register: module_status_result
+  failed_when: false
+  changed_when: false
+
+- name: "Initliaze module_status to False"
+  ansible.builtin.set_fact: 
+    module_status: False
+
+- name: "Set module_status for module {{ module.id}}"
+  ansible.builtin.set_fact:
+    module_status: "{{ module_status_result.stdout | from_json | first}}"
+  when: module_status_result.stdout != ""
+
+- name: "Display module {{ module.id}}'s status"
+  ansible.builtin.debug:
+    msg: "module_status={{module_status}}"

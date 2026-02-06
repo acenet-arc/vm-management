@@ -6,6 +6,18 @@
   ansible.builtin.set_fact:
     compose_file: "docker-compose-om.yml"
 
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
+  when: site.backup.perform_backup is defined
+
+- name: "Backup site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: restic_backup_site.yml
+  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
+
 - name: "Restore from backup if needed"
   ansible.builtin.include_tasks:
     file: restore_site_from_backup_if_needed.yml
@@ -35,28 +47,15 @@
 - name: "Set site {{ site.id }} file permissions"
   ansible.builtin.include_tasks:
     file: om_set_file_permissions.yml
-    
-- name: "Ensure only specified themes installed for {{ site.id }}"
-  ansible.builtin.include_tasks:
-    file: om_ensure_only_specified_themes_installed.yml
-
-- name: "Ensure only specified modules installed for {{ site.id }}"
-  ansible.builtin.include_tasks:
-    file: om_ensure_only_specified_modules_installed.yml
-
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
-
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
-  when: site.backup.perform_backup is defined
-
-- name: "Backup site {{ site.id }}"
-  ansible.builtin.include_tasks:
-    file: restic_backup_site.yml
-  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
 
 - name: "Update Omeka site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: om_update_site.yml
 
+- name: "Ensure only specified themes installed for {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_ensure_only_specified_themes_installed.yml
+
+- name: "Check for unspecified modules on {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: om_check_for_unspecified_modules_and_optionally_remove.yml
