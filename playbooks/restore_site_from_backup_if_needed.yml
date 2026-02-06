@@ -42,11 +42,11 @@
     ( site.backup.restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
     (site.backup.restore_snapshot_id in snapshotlist) }}"
   when: site.backup.restore_snapshot_id is defined
-  
+
 - name: "Checking if we need to restore from backup"
   ansible.builtin.set_fact:
     to_restore: "{{ to_restore_missing or to_restore_requested }}"
-    
+
 - name: "Checking if restore_from_backup explicitly set"
   ansible.builtin.set_fact:
     to_restore: "{{ site.backup.restore_from_backup }}"
@@ -56,6 +56,20 @@
   ansible.builtin.set_fact:
     snapshot_to_restore: 'latest'
   when: to_restore_missing or to_restore_requested
+
+- name: ""
+  ansible.builtin.debug:
+    msg: "to_restore_requested={{ to_restore_requested }}"
+
+- name: ""
+  ansible.builtin.debug:
+    msg: "site.backup.restore_snapshot_id={{ site.backup.restore_snapshot_id }}"
+  when: site.backup.restore_snapshot_id is defined
+
+- name: ""
+  ansible.builtin.debug:
+    msg: "site.backup.restore_snapshot_id in snapshotlist={{ site.backup.restore_snapshot_id in snapshotlist }}"
+  when: site.backup.restore_snapshot_id is defined
 
 - name: "Set snapshot_to_restore to specific ID"
   ansible.builtin.set_fact:
