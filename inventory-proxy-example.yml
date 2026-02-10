@@ -19,7 +19,18 @@ ubuntu:
 # - see redirect blocks below, based on standard 'Certbot' managed clauses - do one for each domain
 # - 'group_vars/proxy_hosts.yml' contains the certificate location and standard nginx proxy blocks - can override here
 # - most of the work is done in the jinja2 templates
+# - set this here rather than in 'group_vars' bcs it's going to change a lot
+# - this is for snakeoil/self signed, below: fix for your real bastion DNS
+#    server_ssl_settings: |
+#          ssl_certificate /etc/ssl/certs/nginx.crt;
+#          ssl_certificate_key /etc/ssl/private/nginx.key;
 proxy_hosts:
+  vars:
+    server_ssl_settings: |
+          ssl_certificate /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/fullchain.pem;
+          ssl_certificate_key /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/privkey.pem;
+          include /etc/letsencrypt/options-ssl-nginx.conf;
+          ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
   hosts:
     mybastion:
       ansible_host: mybastion
