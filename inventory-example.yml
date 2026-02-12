@@ -4,6 +4,7 @@ all:
   
   vars:
     ansible_connection: ssh
+    ansible_user: "<user-you-connect-with>"
   hosts:
     <host-alias>: 
       ansible_host: <ip-adress>
@@ -11,10 +12,11 @@ all:
 ubuntu:
   hosts:
     <host-alias>:
+      ansible_user: "<user-you-connect-with>" #overrides ansible_user set above just for this host
 
 website_hosts:
-  #Default vales for host vars should be used if a value is not specified 
-  #below. See group_vars/wp_hosts/defaults.yml and group_vars/wp_hosts/secrets.yml
+  #Default values for host vars should be used if a value is not specified 
+  #below. See group_vars/website_hosts/defaults.yml
   
   #site vars which may be set
   #- domains: "testansible9.ace-net.training"
@@ -80,9 +82,11 @@ website_hosts:
   #        "url":"<optional-url-to-download-zip-from>",
   #     "active":True/False,
   #     "update":True/False}]
-
+  vars:
+    cert_bot_email: "<email-to-register-with-lets-encrypt>" # used for all hosts in the website_hosts group
   hosts:
     <host-alias>:
+      cert_bot_email: "<email-to-register-with-lets-encrypt>" #override cert_bot_email set above for this host
       sites:
         - domains: [""]
           port: 8081
