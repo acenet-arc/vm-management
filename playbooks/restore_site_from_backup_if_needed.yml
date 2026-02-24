@@ -55,7 +55,7 @@
 - name: "Initialize snapshot_to_restore to 'latest'"
   ansible.builtin.set_fact:
     snapshot_to_restore: 'latest'
-  when: to_restore_missing or to_restore_requested
+  when: to_restore
 
 - name: ""
   ansible.builtin.debug:

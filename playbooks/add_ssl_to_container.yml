@@ -1,0 +1,72 @@
+---
+
+- name: "Ensure private key is present"
+  community.crypto.openssl_privatekey:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/privkey.key"
+    size: 2048
+    mode: "0600"
+    type: RSA
+  register: ensure_private_key
+
+- name: "Ensure self-signed cert is present"
+  community.crypto.x509_certificate:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/cert.crt"
+    privatekey_path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/privkey.key"
+    provider: selfsigned
+    selfsigned_not_after: "+3650d" # this is the default
+    mode: "0644"
+  register: ensure_cert
+
+- name: "Symbolic links to enable mods for SSL"
+  ansible.builtin.file:
+    src: "../mods-available/{{ file_name }}"
+    dest: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/mods-enabled/{{ file_name }}"
+    owner: root
+    group: root
+    state: link
+  loop: ["ssl.conf","ssl.load","rewrite.load","socache_shmcb.load"]
+  loop_control:
+    loop_var: file_name
+    label: "{{ file_name }}"
+  register: ensure_mod_links
+  
+- name: "Symbolic link to enable default SSL site"
+  ansible.builtin.file:
+    src: "../sites-available/default-ssl.conf"
+    dest: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    owner: root
+    group: root
+    state: link
+  register: ensure_https_site_link_present
+
+- name: "Ensure Symbolic link to default http site removed"
+  ansible.builtin.file:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/000-default.conf"
+    state: absent
+  register: ensure_http_site_link_removed
+
+- name: "Ensure ServerName set"
+  ansible.builtin.lineinfile:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    regexp: ^\s*ServerName
+    line: "ServerName localhost"
+    insertafter: ^\s*DocumentRoot
+  register: ensure_server_name_set
+  
+- name: "Ensure SSLCertificateFile set"
+  ansible.builtin.lineinfile:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    regexp: ^\s*SSLCertificateFile
+    line: "SSLCertificateFile /etc/apache2/cert.crt"
+  register: ensure_cert_file_set
+
+- name: "Ensure SSLCertificateKeyFile set"
+  ansible.builtin.lineinfile:
+    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    regexp: ^\s*SSLCertificateKeyFile
+    line: "SSLCertificateKeyFile /etc/apache2/privkey.key"
+  register: ensure_key_file_set
+
+- name: "Decide if need compose down/up"
+  ansible.builtin.set_fact:
+    need_compose_cycle: ensure_private_key.changed or ensure_cert.changed of ensure_mod_links.changed or ensure_https_site_link_present.changed or ensure_http_site_link_removed.changed or ensure_cert_file_set.changed or ensure_key_file_set.changed or ensure_server_name_set.changed

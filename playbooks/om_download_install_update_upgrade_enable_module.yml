@@ -59,12 +59,12 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:install {{ module.id }}
-  when: module_status['state']=='not_installed'
+  when: module_status!=false and module_status['state']=='not_installed'
 
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:
     file: om_get_module_status.yml
-  when: module_status['state']=='not_installed'
+  when: module_status==False or module_status['state']=='not_installed'
 
 - name: "Update module {{ module.id }}"
   ansible.builtin.command: >
@@ -76,30 +76,30 @@
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:
     file: om_get_module_status.yml
-  when: module_status['updateAvailable']==True
+  when: module_status==False or module_status['updateAvailable']==True
 
 - name: "Upgrade active module {{ module.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:upgrade {{ module.id }}
-  when: module_status['state']=='needs_upgrade'
+  when: module_status!=False and module_status['state']=='needs_upgrade'
 
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:
     file: om_get_module_status.yml
-  when: module_status['state']=='needs_upgrade'
+  when: module_status==False or module_status['state']=='needs_upgrade'
 
 - name: "Enable module {{module.id}}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:enable {{ module.id }}
-  when: module_status['state']=='not_active' and ( module.active is undefined or module.active==True)
+  when: module_status!=False and module_status['state']=='not_active' and ( module.active is undefined or module.active==True)
 
 - name: "Disable module {{module.id}}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:disable {{ module.id }}
-  when: module_status['state']=='active' and module.active is defined and module.active==False
+  when: module_status!=False and module_status['state']=='active' and module.active is defined and module.active==False

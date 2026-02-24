@@ -11,6 +11,13 @@
     state: directory
     owner: "www-data"
     group: "www-data"
+    
+- name: "Create apache config volume for {{ site.id }} as needed"
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/ap_conf"
+    state: directory
+    owner: "root"
+    group: "root"
 
 - name: "Create database volume for {{ site.id }} as needed"
   ansible.builtin.file:

@@ -5,6 +5,8 @@ all:
   vars:
     ansible_connection: ssh
     ansible_user: "<user-you-connect-with>"
+    skip_docker_host_role: False #If defined and true, will skip running 
+      #docker_host role to speed up testing
   hosts:
     <host-alias>: 
       ansible_host: <ip-adress>

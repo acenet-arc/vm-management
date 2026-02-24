@@ -10,20 +10,20 @@
     loop_var: domain
     label: "{{domain}}"
 
-- name: "Create vhosts_ssl settings for site domains"
+- name: "Create vhosts_ssl settings for site domains with SSL to container"
   ansible.builtin.set_fact:
     vhosts_ssl_mine: "{{ vhosts_ssl_mine|default([]) + [{
       'servername': domain,
       'documentroot': '/var/www/html',
       'certificate_file': '/etc/letsencrypt/live/'~domain~'/fullchain.pem',
       'certificate_key_file': '/etc/letsencrypt/live/'~domain~'/privkey.pem',
-      'extra_parameters': 'ProxyPreserveHost On\nProxyPass / http://0.0.0.0:'~site.port~'/\nProxyPassReverse / http://0.0.0.0:'~site.port~'/'
+      'extra_parameters': 'SSLProxyEngine On\nProxyPreserveHost On\nProxyPass / https://0.0.0.0:'~site.port~'/\nProxyPassReverse / https://0.0.0.0:'~site.port~'/\nSSLProxyVerify none\nSSLProxyCheckPeerCN off\nSSLProxyCheckPeerName off\nSSLProxyCheckPeerExpire off'
       }] }}"
   loop: "{{ site.domains }}"
   loop_control:
     loop_var: domain
     label: "{{domain}}"
-    
+  
 - name: "Create domains list for certbot"
   ansible.builtin.set_fact:
     certbot_certs_mine: "{{ certbot_certs_mine|default([]) + [{

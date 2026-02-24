@@ -23,6 +23,22 @@
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
 
+#NOTE: need to do this after had compose up at least once to populate
+#empty ap_conf volume
+- name: "Setup SSL for {{ site.id }} container"
+  ansible.builtin.include_tasks:
+    file: add_ssl_to_container.yml
+
+#NOTE: add_ssl_to_container will required down/up if changed
+- name: "Compose down if SSL added"
+  ansible.builtin.include_tasks:
+    file: compose_down.yml
+  when: need_compose_cycle
+
+- name: "Bring compose project up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml
+
 - name: "Load database for {{ site.id }} if restoring from backup"
   ansible.builtin.include_tasks:
     file: load_database.yml
