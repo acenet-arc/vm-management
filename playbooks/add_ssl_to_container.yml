@@ -69,4 +69,6 @@
 
 - name: "Decide if need compose down/up"
   ansible.builtin.set_fact:
-    need_compose_cycle: ensure_private_key.changed or ensure_cert.changed of ensure_mod_links.changed or ensure_https_site_link_present.changed or ensure_http_site_link_removed.changed or ensure_cert_file_set.changed or ensure_key_file_set.changed or ensure_server_name_set.changed
+    need_compose_cycle: "{{ensure_private_key.changed or ensure_cert.changed or
+      ensure_mod_links.changed or ensure_https_site_link_present.changed or
+      ensure_http_site_link_removed.changed or ensure_cert_file_set.changed or ensure_key_file_set.changed or ensure_server_name_set.changed|bool}}"
