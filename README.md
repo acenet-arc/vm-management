@@ -12,7 +12,7 @@ The main playbook used in this repository is [`playbooks/manage_sites.yml`](play
 On the machine that you will be running these plays to manage VMs, you must:
 - have Ansible installed (see: [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) )
 - install Ansible requirements.<br/>
-These requirements are needed primarily for the [`playbooks/manage_sites.yml](./playbooks/manage_sites.yml) playbook, other playbooks have no requirements. For example, it is not required for [`playbooks/update_apt_packages.yml`](./playbooks/update_apt_packages.yml).
+These requirements are needed primarily for the [`playbooks/manage_sites.yml`](./playbooks/manage_sites.yml) playbook, other playbooks have no requirements. For example, it is not required for [`playbooks/update_apt_packages.yml`](./playbooks/update_apt_packages.yml).
 
   `$ ansible-galaxy install -r requirements.yml`
 
