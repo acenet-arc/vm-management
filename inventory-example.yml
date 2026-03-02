@@ -28,6 +28,7 @@ website_hosts:
   #    perform_backup: true/false if true the site will be backed up
   #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
   #    restore_from_backup: true/false, if true will restore from latests or restore_snapshot_id if set
+  #    stop_after_restore: true/false, if true will stop playbook after site has been restored, default false
   #    object_store:
   #      url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
   #      key_id: access key id for object store
@@ -96,6 +97,7 @@ website_hosts:
           backup:
             perform_backup: false
             #restore_snapshot_id: latest
+            stop_after_restore: true/false
             object_store:
               key_id: ""
               key: ""

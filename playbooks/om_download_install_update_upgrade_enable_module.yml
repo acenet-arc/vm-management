@@ -59,7 +59,7 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:install {{ module.id }}
-  when: module_status!=false and module_status['state']=='not_installed'
+  when: (module_status!=false and module_status['state']=='not_installed') or needs_new_version_downloaded
 
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:
@@ -71,7 +71,7 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:update "{{ module.id }}"
-  when: module_status['updateAvailable']==True and ( ("update" not in module.keys()) or (module["update"]==True) )
+  when:  module_status!=False and module_status['updateAvailable']==True and ( ("update" not in module.keys()) or (module["update"]==True) )
 
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:

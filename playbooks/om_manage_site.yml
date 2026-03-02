@@ -56,6 +56,11 @@
     file: load_database.yml
   when: restored[site.id]
 
+- name: "Stop if requested after site restored from backup"
+  ansible.builtin.fail:
+      msg: "Stop after restor requested"
+  when: site.backup.stop_after_restore is defined and site.backup.stop_after_restore==true
+  
 - name: "Initialize omeka-s site {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: om_initialize_site_if_needed.yml

@@ -6,6 +6,18 @@
   ansible.builtin.set_fact:
     compose_file: "docker-compose-wp.yml"
 
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
+
+- ansible.builtin.debug:
+    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
+  when: site.backup.perform_backup is defined
+
+- name: "Backup site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: restic_backup_site.yml
+  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
+
 - name: "Restore from backup if needed"
   ansible.builtin.include_tasks:
     file: restore_site_from_backup_if_needed.yml
@@ -48,6 +60,11 @@
   ansible.builtin.include_tasks:
     file: wp_ensure_file_permissions.yml
   
+- name: "Stop if requested after site restored from backup"
+  ansible.builtin.fail:
+      msg: "Stop after restor requested"
+  when: site.backup.stop_after_restore is defined and site.backup.stop_after_restore==true
+  
 - name: "Install Wordpress core for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: wp_install_core_if_needed.yml
@@ -87,11 +104,6 @@
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
   when: htaccess_result.changed
-  
-- name: "Backup Wordpress site {{ site.id }}"
-  ansible.builtin.include_tasks:
-    file: restic_backup_site.yml
-  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
 
 - name: "Update Wordpress site {{ site.id }}"
   ansible.builtin.include_tasks:
