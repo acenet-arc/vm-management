@@ -2,7 +2,7 @@
 
 - name: "Ensure private key is present"
   community.crypto.openssl_privatekey:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/privkey.key"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/privkey.key"
     size: 2048
     mode: "0600"
     type: RSA
@@ -10,8 +10,8 @@
 
 - name: "Ensure self-signed cert is present"
   community.crypto.x509_certificate:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/cert.crt"
-    privatekey_path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/privkey.key"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/cert.crt"
+    privatekey_path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/privkey.key"
     provider: selfsigned
     selfsigned_not_after: "+3650d" # this is the default
     mode: "0644"
@@ -20,7 +20,7 @@
 - name: "Symbolic links to enable mods for SSL"
   ansible.builtin.file:
     src: "../mods-available/{{ file_name }}"
-    dest: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/mods-enabled/{{ file_name }}"
+    dest: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/mods-enabled/{{ file_name }}"
     owner: root
     group: root
     state: link
@@ -33,7 +33,7 @@
 - name: "Symbolic link to enable default SSL site"
   ansible.builtin.file:
     src: "../sites-available/default-ssl.conf"
-    dest: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    dest: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
     owner: root
     group: root
     state: link
@@ -41,13 +41,13 @@
 
 - name: "Ensure Symbolic link to default http site removed"
   ansible.builtin.file:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/000-default.conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/sites-enabled/000-default.conf"
     state: absent
   register: ensure_http_site_link_removed
 
 - name: "Ensure ServerName set"
   ansible.builtin.lineinfile:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
     regexp: ^\s*ServerName
     line: "ServerName localhost"
     insertafter: ^\s*DocumentRoot
@@ -55,14 +55,14 @@
   
 - name: "Ensure SSLCertificateFile set"
   ansible.builtin.lineinfile:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
     regexp: ^\s*SSLCertificateFile
     line: "SSLCertificateFile /etc/apache2/cert.crt"
   register: ensure_cert_file_set
 
 - name: "Ensure SSLCertificateKeyFile set"
   ansible.builtin.lineinfile:
-    path: "/home/{{ansible_user}}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf/sites-enabled/default-ssl.conf"
     regexp: ^\s*SSLCertificateKeyFile
     line: "SSLCertificateKeyFile /etc/apache2/privkey.key"
   register: ensure_key_file_set
