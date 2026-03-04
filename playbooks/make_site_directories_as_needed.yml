@@ -1,27 +1,27 @@
 - name: "Create {{ site.id }} site directory as needed"
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/{{ site.id }}/"
+    path: "{{ container_base }}/{{ site.id }}/"
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
 
 - name: "Create web root volume for {{ site.id }} as needed"
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/web"
+    path: "{{ container_base }}/{{ site.id }}/volumes/web"
     state: directory
     owner: "www-data"
     group: "www-data"
-    
+
 - name: "Create apache config volume for {{ site.id }} as needed"
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/ap_conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf"
     state: directory
     owner: "root"
     group: "root"
 
 - name: "Create database volume for {{ site.id }} as needed"
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/db"
+    path: "{{ container_base }}/{{ site.id }}/volumes/db"
     state: directory
     owner: "lxd"
     group: "docker"
@@ -31,7 +31,7 @@
 #docker hub image page for mysql doesn't list "lxd" user, did it before?
 - name: "Create database volume directories as needed"
   ansible.builtin.file:
-    path: "/home/{{ ansible_user }}/{{ site.id }}/volumes/db"
+    path: "{{ container_base }}/{{ site.id }}/volumes/db"
     state: directory
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"

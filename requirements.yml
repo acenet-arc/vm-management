@@ -2,6 +2,8 @@
 roles:
   - name: geerlingguy.apache
     version: "3.3.0"
+  - name: geerlingguy.nginx
+    version: "3.3.0"
   - name: geerlingguy.docker
     version: "7.0.1"
   - name: geerlingguy.certbot
