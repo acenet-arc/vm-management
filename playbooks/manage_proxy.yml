@@ -1,0 +1,20 @@
+---
+
+- name: "Manage Proxy Host"
+  hosts:
+    - proxy_hosts
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: true
+
+  roles:
+    - role: proxyhost
+
+  tasks:
+
+    - name: "Distribution"
+      ansible.builtin.debug: msg="{{ ansible_distribution }}"
+    - name: "Distribution version"
+      ansible.builtin.debug: msg="{{ ansible_distribution_version }}"
+    - name: "Distribution major version"
+      ansible.builtin.debug: msg="{{ ansible_distribution_major_version }}"
