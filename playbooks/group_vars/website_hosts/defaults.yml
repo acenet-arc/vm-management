@@ -1,14 +1,15 @@
 ---
 
+webhost_certbot: False
 default_initial_site_title: "Test Site"
 wp_defaults:
   cli_image: "wordpress:cli"
   dissallow_file_mods: true
   auto_update_core: false
   force_ssl_admin: true
-  themes: [twentytwentythree]
-  plugins: [limit-login-attempts-reloaded]
-  active_plugins: [limit-login-attempts-reloaded]
+  themes: ["twentytwentyfour"]
+  plugins: ["akismet", "hello", "limit-login-attempts-reloaded"]
+  active_plugins: ["limit-login-attempts-reloaded"]
   remove_unspecified_themes: False
   remove_unspecified_plugins: False
 om_defaults:
