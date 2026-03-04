@@ -8,6 +8,7 @@
       RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI}
 
 - name: "Create site vhosts, vhosts_ssl, and certbot per site"
+  when: webhost_certbot
   ansible.builtin.include_tasks:
     file: vhosts_vars.yml
   loop: "{{ sites }}"
@@ -27,6 +28,7 @@
 
 - ansible.builtin.include_role:
     name: geerlingguy.apache
+  when: webhost_certbot
   vars:
     apache_mods_enabled:
       - rewrite
@@ -41,6 +43,7 @@
 
 - ansible.builtin.include_role:
     name: geerlingguy.certbot
+  when: webhost_certbot
   vars:
     certbot_install_method: package
     certbot_create_if_missing: true
