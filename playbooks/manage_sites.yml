@@ -31,7 +31,7 @@
     - name: "Copy WordPress supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "/home/{{ ansible_user }}/{{ item }}"
+        dest: "{{ container_base }}/{{ item }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
       loop:
@@ -43,7 +43,7 @@
     - name: "Copy Omeka-S supporting files"
       ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "/home/{{ ansible_user }}/{{ item }}"
+        dest: "{{ container_base }}/{{ item }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
       loop:
@@ -54,7 +54,7 @@
     - name: "Create Omeka-S Dockerfile"
       ansible.builtin.template:
         src: Dockerfile_om.j2
-        dest: "/home/{{ ansible_user }}/Dockerfile_om"
+        dest: "{{ container_base }}/Dockerfile_om"
         owner:  "{{ ansible_user }}"
         group:  "{{ ansible_user }}"
       register: create_om_dockerfile
@@ -62,7 +62,7 @@
     - name: "Create Omeka-S CLI Dockerfile"
       ansible.builtin.template:
         src: Dockerfile_om_cli.j2
-        dest: "/home/{{ ansible_user }}/Dockerfile_om_cli"
+        dest: "{{ container_base }}/Dockerfile_om_cli"
         owner:  "{{ ansible_user }}"
         group:  "{{ ansible_user }}"
       register: create_om_cli_dockerfile

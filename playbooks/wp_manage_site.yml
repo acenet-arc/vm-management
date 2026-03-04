@@ -4,7 +4,7 @@
 
 - name: "Set compose file to docker-compose-wp.yml"
   ansible.builtin.set_fact:
-    compose_file: "docker-compose-wp.yml"
+    compose_file: "{{ container_base }}/docker-compose-wp.yml"
 
 - ansible.builtin.debug:
     msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
@@ -16,11 +16,12 @@
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: restic_backup_site.yml
-  when: not (site.backup.perform_backup is defined) or site.backup.perform_backup
+  when: site.backup is defined and site.backup.perform_backup
 
 - name: "Restore from backup if needed"
   ansible.builtin.include_tasks:
     file: restore_site_from_backup_if_needed.yml
+  when: site.backup is defined
 
 - name: "Make site directories as needed"
   ansible.builtin.include_tasks:
@@ -54,7 +55,7 @@
 - name: "Load database for {{ site.id }} if restoring from backup"
   ansible.builtin.include_tasks:
     file: load_database.yml
-  when: restored[site.id]
+  when: site.backup is defined and restored[site.id]
   
 - name: "Ensure correct file permissions for {{ site.id }}"
   ansible.builtin.include_tasks:

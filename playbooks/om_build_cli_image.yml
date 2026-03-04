@@ -1,2 +1,2 @@
 - name: "Build Omeka-S cli image"
-  ansible.builtin.command: docker build -t "{{ om_defaults.cli_image }}" -f ./Dockerfile_om_cli .
+  ansible.builtin.command: docker build -t "{{ om_defaults.cli_image }}" -f {{ container_base }}/Dockerfile_om_cli .
