@@ -1,13 +1,11 @@
 ---
 roles:
-  - name: geerlingguy.apache
-    version: "3.3.0"
   - name: geerlingguy.nginx
     version: "3.3.0"
   - name: geerlingguy.docker
-    version: "7.0.1"
+    version: "8.0.1"
   - name: geerlingguy.certbot
-    version: "5.1.0"
+    version: "5.4.1"
 collections:
   - name: ansible.posix
   - name: community.general

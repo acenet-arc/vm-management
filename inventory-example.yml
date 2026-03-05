@@ -8,13 +8,85 @@ all:
     skip_docker_host_role: False #If defined and true, will skip running 
       #docker_host role to speed up testing
   hosts:
-    <host-alias>: 
-      ansible_host: <ip-adress>
+    <host-alias-proxy>: 
+      ansible_host: <proxy-ip-adress>
+    
+    #if this host is behind the <host-alias-bastion> the ansible_ssh_common_args
+    #can be used to access it
+    <host-alias>:
+      ansible_host: <private-ip-adress>
+      ansible_ssh_common_args: "-J {{ ansible_user }}@<proxy-ip-adress>"
 
 ubuntu:
   hosts:
     <host-alias>:
       ansible_user: "<user-you-connect-with>" #overrides ansible_user set above just for this host
+    <host-alias-proxy>:
+
+# Some examples of proxy blocks:
+# - the model is: proxy host sits in front of any number of other VMs and/or services
+# - first includes a local service, second shows restricted access to a Wordpress admin interface
+# - should probably put an index.html in the local root, e.g. redirecting to one of the proxied services
+# - multiple locations for each application work, e.g. 'slash' 'login' 'logout', etc. - application dependant
+# - see redirect blocks below, based on standard 'Certbot' managed clauses - do one for each domain
+# - 'group_vars/proxy_hosts.yml' contains the certificate location and standard nginx proxy blocks - can override here
+# - most of the work is done in the jinja2 templates
+# - set this here rather than in 'group_vars' bcs it's going to change a lot
+# - this is for snakeoil/self signed, below: fix for your real bastion DNS
+#    server_ssl_settings: |
+#          ssl_certificate /etc/ssl/certs/nginx.crt;
+#          ssl_certificate_key /etc/ssl/private/nginx.key;
+# proxy_for_hosts: a list of hosts this proxy sits in front of
+# server_ssl_settings: if set these settings will be used, otherwise they will be set
+#   based on sites on hosts listed in proxy_for variable
+# nginx_vhosts: allows one to specify nginx_vhosts directly. If not specified will
+#   attempt to automatically set from hosts listed in proxy_for
+proxy_hosts:
+  vars:
+    cert_bot_email: "<email-to-register-with-lets-encrypt>" # used for all hosts in the website_hosts group
+    server_ssl_settings: |
+          ssl_certificate /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/fullchain.pem;
+          ssl_certificate_key /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/privkey.pem;
+          include /etc/letsencrypt/options-ssl-nginx.conf;
+          ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+  hosts:
+    <host-alias-proxy>:
+      nginx_vhosts:
+        - listen: "443 ssl"
+          server_name: "exampledomain.com  exampledomain.ca <cc-cloud-standard-dns>.cloud.computecanada.ca"
+          root: "/var/www/html/"
+          state: "present"
+          template: "proxy_vhost.j2"
+          filename: "<cc-cloud-standard-dns>.cloud.computecanada.ca"
+          locations:
+            grafana: |
+              proxy_pass http://127.0.0.1:3000;
+              allow <some IP>;
+              allow <another IP>;
+              deny all;
+        - listen: "443 ssl"
+          server_name: "sub1.exampledomain.com  sub1.exampledomain.ca"
+          state: "present"
+          template: "proxy_vhost.j2"
+          filename: "sub1.exampledomain.ca"
+          locations:
+            slash: |
+                proxy_pass https://sub1/;
+            wp-admin: |
+                proxy_pass https://sub1/wp-admin;
+                allow <some IP>;
+                allow <another IP>;
+                deny all;
+        - listen: "80"
+          server_name: "<cc-cloud-standard-dns>.cloud.computecanada.ca exampledomain.com exampledomain.ca"
+          filename: "<cc-cloud-standard-dns>.cloud.computecanada.ca.80"
+          state: "present"
+          template: "proxy_vhost_redirect.j2"
+        - listen: "80"
+          server_name: "sub1.exampledomain.com sub1.exampledomain.ca"
+          filename: "sub1.exampledomain.ca.80"
+          state: "present"
+          template: "proxy_vhost_redirect.j2"
 
 website_hosts:
   #Default values for host vars should be used if a value is not specified 

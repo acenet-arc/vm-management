@@ -1,5 +1,48 @@
 ---
 
+- name: "Initialize setting_manually to false"
+  ansible.builtin.set_fact:
+    setting_manually: false
+
+- name: "Check if setting nginx_vhosts and server_ssl_settings manually"
+  ansible.builtin.set_fact:
+    setting_manually: "{{(server_ssl_settings is defined and nginx_vhosts is defined)}}"
+
+- name: "Check that both nginx_vhosts and server_ssl_settings set manually"
+  ansible.builtin.fail:
+    msg: "If setting nginx_vhosts or server_ssl_settings manually, both must be defined"
+  when: setting_manually and (server_ssl_settings is not defined or nginx_vhosts is not defined)
+
+- name: "Get domains and nginx_vhosts from hosts behind proxy"
+  ansible.builtin.include_tasks:
+    file: get_host_vars.yml
+  when: not setting_manually
+  loop: "{{proxy_for_hosts}}"
+  loop_control:
+    loop_var: host
+
+- name: "Set server_ssl_settings automatically"
+  ansible.builtin.set_fact:
+    server_ssl_settings: |
+      ssl_certificate /etc/letsencrypt/live/{{proxy_domains[0]}}/fullchain.pem;
+      ssl_certificate_key /etc/letsencrypt/live/{{proxy_domains[0]}}/privkey.pem;
+  when: not setting_manually
+
+- name: "Include Geerlingguy Certbot Role"
+  ansible.builtin.include_role:
+    name: geerlingguy.certbot
+  vars:
+    certbot_install_method: package
+    certbot_create_if_missing: true
+    certbot_create_standalone_stop_services:
+      - nginx
+    certbot_hsts: true
+    certbot_expand: true
+    certbot_auto_renew: false
+    certbot_admin_email: "{{ cert_bot_email }}"
+    certbot_certs: "{{ [ {'domains':proxy_domains,'email': cert_bot_email } ] }}"
+  when: not setting_manually
+
 - name: "Include Geerlingguy Nginx Role"
   ansible.builtin.include_role:
     name: geerlingguy.nginx
@@ -7,19 +50,5 @@
     nginx_package_name: "nginx,nginx-core"
     nginx_remove_default_vhost: true
     nginx_listen_ipv6: false
-
-- name: "Include Geerlingguy Certbot Role"
-  ansible.builtin.include_role:
-    name: geerlingguy.certbot
-  vars:
-    certbot_install_method: package
-    certbot_package: "certbot,python3-certbot-nginx"
-    certbot_create_if_missing: true
-    certbot_create_standalone_stop_services:
-      - nginx
-    certbot_hsts: true
-  when: proxy_certbot
-    certbot_admin_email: "{{ cert_bot_email }}"
-    certbot_certs: "{{ certbot_certs_mine }}"
 
 #- name: "Set up postfix for mail relay"

@@ -1,0 +1,10 @@
+---
+
+- name: "Get domains from host {{host}}"
+  ansible.builtin.include_tasks:
+    file: get_site_vars.yml
+  when: hostvars[host] is defined and hostvars[host].sites is defined
+  loop: "{{hostvars[host].sites}}"
+  loop_control:
+    loop_var: site
+    label: "{{site.id}}"

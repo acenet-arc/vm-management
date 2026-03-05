@@ -1,0 +1,34 @@
+---
+
+- name: "Set host address"
+  ansible.builtin.set_fact:
+    host_address: >-
+      {{ hostvars[host]['ansible_host'] if inventory_hostname!=host else 'localhost' }}
+
+- name: "Add to nginx_vhosts for site {{site.id}}"
+  ansible.builtin.set_fact:
+    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
+      'listen': '443 ssl',
+      'server_name': domain,
+      'state':'present','template':'proxy_vhost.j2',
+      'filename': domain,
+      'locations':{'slash':'proxy_pass https://'+host_address+':'+site.port|string+';'}
+      },{
+      'listen': '80',
+      'server_name': domain,
+      'filename': domain+'.80',
+      'state': 'present',
+      'template': 'proxy_vhost_redirect.j2'
+      }]}}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
+
+- name: "Add to proxy_domains list for site {{site.id}}"
+  ansible.builtin.set_fact:
+    proxy_domains: "{{proxy_domains|default([ansible_host|replace('.','-')+'.cloud.computecanada.ca']) + [domain]}}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
