@@ -26,6 +26,30 @@
       ansible.builtin.include_tasks:
         file: restic_install_update.yml
     
+    - name: "Check if we have an Omeka-S site on {{inventory_hostname}}"
+      ansible.builtin.set_fact:
+        has_om_site: "{{has_om_site|default(false) or site.om_settings is defined}}"
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+        label: "{{site.id}}"
+    
+    - name: "Host has Omeka-S site?"
+      ansible.builtin.debug:
+        msg: "has_om_site={{ has_om_site }}"
+    
+    - name: "Check if we have a WordPress site on {{inventory_hostname}}"
+      ansible.builtin.set_fact:
+        has_wp_site: "{{has_wp_site|default(false) or site.wp_settings is defined}}"
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+        label: "{{site.id}}"
+      
+    - name: "Host has WordPress site?"
+      ansible.builtin.debug:
+          msg: "has_wp_site={{ has_wp_site }}"
+    
     #NOTE: Wordpress site specific setup
     #not needed if only hosting Omeka sites on host
     - name: "Copy WordPress supporting files"
@@ -37,6 +61,7 @@
       loop:
         - docker-compose-wp.yml
       register: copy_wp_supporting_files
+      when: has_wp_site
     
     #NOTE: Omeka-S site specific setup
     #not needed if only hosting WordPress sites on host
@@ -50,6 +75,7 @@
         - docker-compose-om.yml
         - docker-entrypoint.sh
       register: copy_om_supporting_files
+      when: has_om_site
       
     - name: "Create Omeka-S Dockerfile"
       ansible.builtin.template:
@@ -58,6 +84,7 @@
         owner:  "{{ ansible_user }}"
         group:  "{{ ansible_user }}"
       register: create_om_dockerfile
+      when: has_om_site
       
     - name: "Create Omeka-S CLI Dockerfile"
       ansible.builtin.template:
@@ -66,11 +93,12 @@
         owner:  "{{ ansible_user }}"
         group:  "{{ ansible_user }}"
       register: create_om_cli_dockerfile
+      when: has_om_site
       
     - name: "Ensure Omeka-S CLI docker image built"
       ansible.builtin.include_tasks:
         file: om_build_cli_image.yml
-      when: create_om_cli_dockerfile.changed
+      when: has_om_site and create_om_cli_dockerfile.changed
       
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
