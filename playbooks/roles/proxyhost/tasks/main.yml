@@ -26,8 +26,10 @@
     server_ssl_settings: |
       ssl_certificate /etc/letsencrypt/live/{{proxy_domains[0]}}/fullchain.pem;
       ssl_certificate_key /etc/letsencrypt/live/{{proxy_domains[0]}}/privkey.pem;
+      include /etc/letsencrypt/options-ssl-nginx.conf;
+      ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
   when: not setting_manually
-
+  
 - name: "Include Geerlingguy Certbot Role"
   ansible.builtin.include_role:
     name: geerlingguy.certbot
@@ -42,6 +44,23 @@
     certbot_admin_email: "{{ cert_bot_email }}"
     certbot_certs: "{{ [ {'domains':proxy_domains,'email': cert_bot_email } ] }}"
   when: not setting_manually
+
+- name: Change file ownership, group and permissions
+  ansible.builtin.copy: 
+    src: options-ssl-nginx.conf
+    dest: /etc/letsencrypt/options-ssl-nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Get status of ssl-dhparams.pem file"
+  ansible.builtin.stat:
+    path: /etc/letsencrypt/ssl-dhparams.pem
+  register: ssl_dhparams_file
+
+- name: "Generate ssl-dhparams.pem"
+  ansible.builtin.command: curl https://ssl-config.mozilla.org/ffdhe2048.txt -o /etc/letsencrypt/ssl-dhparams.pem
+  when: not ssl_dhparams_file.stat.exists
 
 - name: "Include Geerlingguy Nginx Role"
   ansible.builtin.include_role:

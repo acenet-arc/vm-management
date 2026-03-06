@@ -1,6 +1,5 @@
 ---
 
-proxy_certbot: False
 index: "index.html"
 location_proxy_settings: |
       proxy_http_version 1.1;
