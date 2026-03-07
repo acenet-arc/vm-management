@@ -17,20 +17,42 @@
   register: snapshotlist_result
   failed_when: false
   changed_when: false
-  
+
+- name: "Check for errors getting snapshot list"
+  ansible.builtin.fail:
+    msg: >
+      Unable to get snapshot list from restic repository at 
+      '{{site.backup.object_store.url}}'
+      Did you forget to initialize the restic repository?
+  when: snapshotlist_result.rc is defined and snapshotlist_result.rc!=0
+
+- name: "Initialize has_snapshotlist_result to false"
+  ansible.builtin.set_fact:
+    has_snapshotlist_result: false
+
+- name: "Check if we have any snapshots"
+  ansible.builtin.set_fact:
+    has_snapshotlist_result: "{{ snapshotlist_result.stdout|length >0}}"
+  when: snapshotlist_result is defined and snapshotlist_result.stdout is defined
+
 - name: "Parse backup snapshot list output into list"
   ansible.builtin.set_fact:
     snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
-  when: (not file.stat.exists) or (site.backup.restore_snapshot_id is defined)
+  when: has_snapshotlist_result and ((not file.stat.exists) or (site.backup.restore_snapshot_id is defined))
 
 - name: "Display snapshot list"
   ansible.builtin.debug:
     msg: "snapshotlist={{ snapshotlist }}"
   when: snapshotlist is defined
 
+- name: "Initialize to_restore_missing to false"
+  ansible.builtin.set_fact:
+    to_restore_missing: false
+  
 - name: "Checking if we should restore from backup because of a missing site directory"
   ansible.builtin.set_fact:
     to_restore_missing: "{{ (not file.stat.exists and (snapshotlist|length>0) ) }}"
+  when: has_snapshotlist_result
 
 - name: "Initializing to_restore_requested to false"
   ansible.builtin.set_fact:
@@ -41,11 +63,11 @@
     to_restore_requested: "{{ 
     ( site.backup.restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
     (site.backup.restore_snapshot_id in snapshotlist) }}"
-  when: site.backup.restore_snapshot_id is defined
+  when: site.backup.restore_snapshot_id is defined and snapshotlist is defined
 
 - name: "Checking if we need to restore from backup"
   ansible.builtin.set_fact:
-    to_restore: "{{ to_restore_missing or to_restore_requested }}"
+    to_restore: "{{ (to_restore_missing or to_restore_requested) }}"
 
 - name: "Checking if restore_from_backup explicitly set"
   ansible.builtin.set_fact:
@@ -114,11 +136,6 @@
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
   when: to_restore
-#  register: restore_results
-
-#- name: "Display restore results"
-#  ansible.builtin.debug:
-#    msg: "restore_results={{ restore_results }}"
 
 - name: "Recored that site wasn't restored"
   ansible.builtin.set_fact:
