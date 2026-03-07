@@ -1,5 +1,10 @@
 ---
 
+- name: "Check if site directory exists"
+  ansible.builtin.stat:
+    path: "./{{site.id}}"
+  register: site_dir
+
 - name: "Dump {{ site.id }}'s database"
   ansible.builtin.shell: >
     docker exec -i -e MYSQL_ROOT_PASSWORD "{{ site.id }}"-db-1 sh -c
@@ -7,6 +12,7 @@
     ./"{{ site.id }}"/all-databases.sq
   environment:
     MYSQL_ROOT_PASSWORD: "{{ site.database.root_password }}"
+  when: site_dir.stat.exists
 
 - name: "Set {{ site.id }}'s database dump's owner"
   ansible.builtin.file:
@@ -14,6 +20,7 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     state: file
+  when: site_dir.stat.exists
 
 - name: "Backup site, {{ site.id }}"
   ansible.builtin.command: >
@@ -23,6 +30,8 @@
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  when: site_dir.stat.exists
+
 #  register: backup_results
 
 #- name: "Display backup results"
