@@ -8,7 +8,7 @@ wp_defaults:
   auto_update_core: false
   force_ssl_admin: true
   themes: ["twentytwentyfour"]
-  plugins: plugins: ["akismet", "hello", "limit-login-attempts-reloaded"]
+  plugins: ["akismet", "limit-login-attempts-reloaded"]
   active_plugins: ["limit-login-attempts-reloaded"]
   remove_unspecified_themes: False
   remove_unspecified_plugins: False
