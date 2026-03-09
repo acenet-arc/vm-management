@@ -111,6 +111,7 @@
         group: mysql
         state: present
         system: true
+        create_home: false
       register: mysql_user_info
       
     - name: "Manage WordPress sites"
