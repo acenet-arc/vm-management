@@ -5,6 +5,8 @@
     DB_PASSWORD: "{{ site.database.user_password }}"
     DB_NAME: "{{ site.database.name }}"
     DB_ROOT_PASSWORD: "{{ site.database.root_password }}"
+    MYSQL_USER_UID: "{{mysql_user_info.uid}}"
+    MYSQL_USER_GID: "{{mysql_user_info.group}}"
     SITE_NAME: "{{ site.id }}"
     LOCAL_PORT: "{{ site.port }}"
     WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}"

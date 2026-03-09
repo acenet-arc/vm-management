@@ -99,6 +99,19 @@
       ansible.builtin.include_tasks:
         file: om_build_cli_image.yml
       when: has_om_site and create_om_cli_dockerfile.changed
+    
+    - name: "Ensure group 'mysql' exists"
+      ansible.builtin.group:
+        name: mysql
+        state: present
+    
+    - name: "Ensure we have mysql user"
+      ansible.builtin.user:
+        name: mysql
+        group: mysql
+        state: present
+        system: true
+      register: mysql_user_info
       
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
