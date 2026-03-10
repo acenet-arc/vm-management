@@ -155,8 +155,11 @@ website_hosts:
   #    modules: [
   #     {   "id":"<id-of-theme>",
   #        "url":"<optional-url-to-download-zip-from>",
-  #     "active":True/False,
-  #     "update":True/False}]
+  #     "active":True/False, #should the module be active? Default True
+  #     "update":True/False, #should we update the module
+  #     "version":<version-string> #this version of the module will be 
+  #        # installed, but maybe updated if "update":True
+  #     }]
   vars:
     cert_bot_email: "<email-to-register-with-lets-encrypt>" # used for all hosts in the website_hosts group
   hosts:
