@@ -19,3 +19,27 @@
     - name: "Distribution major version"
       ansible.builtin.debug: msg="{{ ansible_distribution_major_version }}"
 
+    - name: "Set date options-ssl-nginx.conf and ssl-dhparams.pem last updated"
+      ansible.builtin.set_fact:
+        ssl_options_set_date: "2025-03-09" #In Y-m-d format
+
+    - name: "Calculate days since ssl settings updated"
+      ansible.builtin.set_fact:
+        days_since_ssl_updated: '{{ ((ansible_facts.date_time.date|to_datetime("%Y-%m-%d"))-(ssl_options_set_date|to_datetime("%Y-%m-%d"))).days}}'
+
+    - name: "Need to update SSL settings?"
+      ansible.builtin.pause:
+        seconds: 1
+        prompt: |
+          *************************** UPDATE SSL SETTINGS ***********************************
+          **                                                                               **
+          ** It has been {{days_since_ssl_updated}}                        days since they were last updated!     **
+          **                                                                               **
+          ** Update settings from https://ssl-config.mozilla.org in:                       **
+          **   - files/options-ssl-nginx.conf                                              **
+          **   - files/ssl-dhparams.pem                                                    **
+          ** and update the ssl_options_set_date variable in the task above to reflect     **
+          ** when they were updated.                                                       **
+          **                                                                               **
+          ***********************************************************************************
+      when: days_since_ssl_updated|int>365
