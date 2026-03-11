@@ -91,7 +91,7 @@
 
 - name: "Configure web/.htaccess for {{ site.id }}"
   ansible.builtin.blockinfile:
-    path: "./{{ site.id }}/volumes/web/.htaccess"
+    path: "{{ container_base }}//{{ site.id }}/volumes/web/.htaccess"
     block: "{{ site.wp_settings.htaccess }}"
   when: site.wp_settings.htaccess is defined
   register: htaccess_result

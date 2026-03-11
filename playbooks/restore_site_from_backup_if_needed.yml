@@ -2,7 +2,7 @@
 
 - name: "Check if there is a site directory"
   ansible.builtin.stat:
-    path: "./{{ site.id }}"
+    path: "{{ container_base }}/{{ site.id }}"
   register: file
 
 - name: "Check if there is a backup for site {{ site.id }}"
@@ -123,14 +123,14 @@
 
 - name: "Remove {{ site.id }}'s directory for clean restore"
   ansible.builtin.file:
-    path: "./{{ site.id }}"
+    path: "{{ container_base }}/{{ site.id }}"
     state: absent
   when: to_restore
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --verbose 
-    restore --tag "{{ site.id }}" --target ./ "{{ snapshot_to_restore }}"
+    restore --tag "{{ site.id }}" --target {{ container_base }}/ "{{ snapshot_to_restore }}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"

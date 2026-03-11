@@ -2,21 +2,21 @@
 
 - name: "Check if site directory exists"
   ansible.builtin.stat:
-    path: "./{{site.id}}"
+    path: "{{ container_base }}/{{site.id}}"
   register: site_dir
 
 - name: "Dump {{ site.id }}'s database"
   ansible.builtin.shell: >
     docker exec -i -e MYSQL_ROOT_PASSWORD "{{ site.id }}"-db-1 sh -c
     'mysqldump --all-databases -uroot -p$MYSQL_ROOT_PASSWORD' > 
-    ./"{{ site.id }}"/all-databases.sq
+    {{ container_base }}/"{{ site.id }}"/all-databases.sq
   environment:
     MYSQL_ROOT_PASSWORD: "{{ site.database.root_password }}"
   when: site_dir.stat.exists
 
 - name: "Set {{ site.id }}'s database dump's owner"
   ansible.builtin.file:
-    path: "./{{ site.id }}/all-databases.sq"
+    path: "{{ container_base }}/{{ site.id }}/all-databases.sq"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     state: file
@@ -25,7 +25,7 @@
 - name: "Backup site, {{ site.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
-    backup "./{{ site.id }}" --exclude="./{{ site.id }}/volumes/db"
+    backup "{{ container_base }}/{{ site.id }}" --exclude="{{ container_base }}/{{ site.id }}/volumes/db"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
