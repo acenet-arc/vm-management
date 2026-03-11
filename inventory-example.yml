@@ -7,6 +7,9 @@ all:
     ansible_user: "<user-you-connect-with>"
     skip_docker_host_role: False #If defined and true, will skip running 
       #docker_host role to speed up testing
+    container_base: "/home/{{ansible_user}}" #where directories for the 
+      #individual sites will be created and where the web root and database 
+      #volumes as well as the database dumps will be stored.
   hosts:
     <host-alias-proxy>: 
       ansible_host: <proxy-ip-adress>
