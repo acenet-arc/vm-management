@@ -115,7 +115,7 @@ website_hosts:
   #    user_password: database user's password
   #    root_password: database root password
   #    name: name of the database
-  #
+  #  login_ips: a list of IPs or CIDR ranges to allow access to the login or wp-admin pages
   #  #If site is a wordpress site include these settings
   #  wp_settings:
   #    wp_cli_image: <docker-image-to-use-for-wp-cli>
@@ -198,7 +198,7 @@ website_hosts:
             remove_unspecified_themes: False
             themes: []
             modules: []
-          login_ips: ["170.10.232.181"]
+          login_ips: ["999.999.999.999"]
         - domains: [""]
           port: 8080
           id: wptest
