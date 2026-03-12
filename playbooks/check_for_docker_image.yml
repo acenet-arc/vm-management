@@ -1,0 +1,18 @@
+---
+
+- name: "Check if Omeka-S CLI docker image present"
+  ansible.builtin.command: docker image list --format json
+  register: docker_image_list_result
+  changed_when: false
+  
+- name: "Initialize image_present to false"
+  ansible.builtin.set_fact:
+    image_present: false
+
+- name: "Set image_present to true when image matches {{docker_image_name}}:{{docker_image_tag}}"
+  ansible.builtin.set_fact:
+    image_present: true
+  when: "(item| from_json)['Repository'] == docker_image_name and (item| from_json)['Tag']==docker_image_tag"
+  loop: "{{ docker_image_list_result.stdout_lines }}"
+  loop_control:
+    label: "{{(item| from_json)['Repository']}}:{{(item| from_json)['Tag']}}"

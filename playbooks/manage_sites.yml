@@ -95,10 +95,17 @@
       register: create_om_cli_dockerfile
       when: has_om_site
       
+    - name: "Check if Omeka-S CLI docker image present"
+      ansible.builtin.include_tasks:
+        file: check_for_docker_image.yml
+      vars:
+        docker_image_name: "{{om_defaults.cli_image.split(':')[0]}}"
+        docker_image_tag: "{{om_defaults.cli_image.split(':')[1]}}"
+    
     - name: "Ensure Omeka-S CLI docker image built"
       ansible.builtin.include_tasks:
         file: om_build_cli_image.yml
-      when: has_om_site and create_om_cli_dockerfile.changed
+      when: has_om_site and (create_om_cli_dockerfile.changed or not image_present)
     
     - name: "Ensure group 'mysql' exists"
       ansible.builtin.group:
