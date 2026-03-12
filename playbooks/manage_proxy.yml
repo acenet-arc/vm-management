@@ -21,7 +21,7 @@
 
     - name: "Set date options-ssl-nginx.conf and ssl-dhparams.pem last updated"
       ansible.builtin.set_fact:
-        ssl_options_set_date: "2025-03-09" #In Y-m-d format
+        ssl_options_set_date: "2026-03-09" #In Y-m-d format
 
     - name: "Calculate days since ssl settings updated"
       ansible.builtin.set_fact:
@@ -33,7 +33,7 @@
         prompt: |
           *************************** UPDATE SSL SETTINGS ***********************************
           **                                                                               **
-          ** It has been {{days_since_ssl_updated}}                        days since they were last updated!     **
+          ** It has been {{days_since_ssl_updated}} days since they were last updated!                            **
           **                                                                               **
           ** Update settings from https://ssl-config.mozilla.org in:                       **
           **   - files/options-ssl-nginx.conf                                              **
