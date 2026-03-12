@@ -7,18 +7,13 @@
   failed_when: omeka_site_initialized_result.rc != 0
   changed_when: false
   
-- name: "Initlize site {{ site.id }}"
+- name: "Initlize Omeka-S site {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
-    --network container:"{{ site.id }}"-web-1 --user 33:33 "{{ om_defaults.cli_image }}"
-    curl
-    --data-urlencode "user[email]={{ site.om_settings.initial.admin_email }}"
-    --data-urlencode "user[email-confirm]={{ site.om_settings.initial.admin_email }}"
-    --data-urlencode "user[name]={{ site.om_settings.initial.admin_display_name }}"
-    --data-urlencode "user[password-confirm][password]={{ site.om_settings.initial.admin_password }}"
-    --data-urlencode "user[password-confirm][password-confirm]={{ site.om_settings.initial.admin_password }}"
-    --data-urlencode "settings[installation_title]={{ site.om_settings.initial.title }}"
-    --data-urlencode "settings[time_zone]={{ site.om_settings.initial.time_zone }}"
-    --data-urlencode "settings[locale]="
-    http://localhost/install
+    --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
+    omeka-s-cli core:install 
+    --admin-name "{{ site.om_settings.initial.admin_display_name }}"
+    --admin-email "{{ site.om_settings.initial.admin_email }}"
+    --admin-password "{{ site.om_settings.initial.admin_password }}"
+    --title "{{ site.om_settings.initial.title }}"
   when: "'not_installed' in omeka_site_initialized_result.stdout"
