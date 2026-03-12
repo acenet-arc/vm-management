@@ -26,12 +26,12 @@
 
 - name: "Set ip_restrictions to deny all"
   ansible.builtin.set_fact:
-    ip_restrictions: "denay all;\n"
+    ip_restrictions: "\ndeny all;"
   when: has_ip_restrictions
   
 - name: "Add allowed login IPs for site {{site.id}}"
   ansible.builtin.set_fact:
-    ip_restrictions: "allow {{ip}};\n{{ip_restrictions}}"
+    ip_restrictions: "\nallow {{ip}};{{ip_restrictions}}"
   loop: "{{site.login_ips}}"
   loop_control:
     loop_var: ip
@@ -57,7 +57,7 @@
       'filename': domain,
       'locations':{
         'slash':'proxy_pass https://'+host_address+':'+site.port|string+';',
-        login_location:'proxy_pass https://'+host_address+':'+site.port|string+'/'+login_location+'/;'+ip_restrictions
+        login_location:'proxy_pass https://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
       }
       },{
       'listen': '80',
