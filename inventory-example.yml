@@ -149,7 +149,6 @@ website_hosts:
   #      admin_display_name:
   #      admin_password:
   #      title:
-  #      time_zone:
   #    remove_unspecified_modules: True/False Will remove modules not specified
   #      if True. Default is False.
   #    remove_unspecified_themes: True/False will remove themes not specified 
