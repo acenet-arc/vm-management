@@ -6,13 +6,6 @@
   ansible.builtin.set_fact:
     compose_file: "{{ container_base }}/docker-compose-wp.yml"
 
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
-
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
-  when: site.backup.perform_backup is defined
-
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: restic_backup_site.yml
@@ -81,13 +74,6 @@
 - name: "Ensure site URLs correct for {{ site.id }}"
   ansible.builtin.include_tasks:
     file: wp_ensure_site_url.yml
-
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup is defined={{ site.backup.perform_backup is defined }}"
-
-- ansible.builtin.debug:
-    msg: "site.backup.perform_backup ={{ site.backup.perform_backup }}"
-  when: site.backup.perform_backup is defined
 
 - name: "Configure web/.htaccess for {{ site.id }}"
   ansible.builtin.blockinfile:

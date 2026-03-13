@@ -12,45 +12,43 @@
   failed_when: false
   changed_when: false
 
-# TODO: the number of tasks below to manipulate the output could likely be
-# reduced by using the map filter
-
-#- ansible.builtin.debug:
-#    msg: "theme_list_result: {{ theme_list_result }}"
-
-- ansible.builtin.set_fact:
+- name: "Parse themes list_result"
+  ansible.builtin.set_fact:
     theme_list: "{{ theme_list_result.stdout | from_json }}"
-#- ansible.builtin.debug:
-#    msg: "theme_list: {{ theme_list }}"
 
-- ansible.builtin.set_fact:
+- name: "Create theme dictionary with theme name as keys"
+  ansible.builtin.set_fact:
     theme_dict_by_name: "{{ theme_list | items2dict('name','status') }}"
-#- ansible.builtin.debug:
-#    msg: "theme_dict_by_name: {{ theme_dict_by_name }}"
 
-- ansible.builtin.set_fact:
+- name: "Create theme dictonary with theme status as keys"
+  ansible.builtin.set_fact:
     theme_dict_by_status: "{{ theme_list | items2dict('status','name') }}"
-#- ansible.builtin.debug:
-#    msg: "theme_dict_by_status: {{ theme_dict_by_status }}"
 
-- ansible.builtin.set_fact:
+- name: "Create list of installed theme names"
+  ansible.builtin.set_fact:
     theme_name_list: "{{ theme_dict_by_name.keys()|list }}"
-- ansible.builtin.debug:
+
+- name: "Display list of installed themes"
+  ansible.builtin.debug:
     msg: "Installed themes: {{ theme_name_list }}"
 
-- ansible.builtin.set_fact:
+- name: "Initialize active_theme_name to null"
+  ansible.builtin.set_fact:
     active_theme_name: 
 
-- ansible.builtin.set_fact:
+- name: "Set active_theme_name when we have one"
+  ansible.builtin.set_fact:
     active_theme_name: "{{ theme_dict_by_status['active'] }}"
   when: "'active' in theme_dict_by_status"
-#- ansible.builtin.debug:
-#    msg: "active_theme_name: {{ active_theme_name }}"
 
-- ansible.builtin.set_fact:
-    complete_theme_list: "{{ wp_defaults.themes + site.wp_settings.themes|default([]) }}"
-#- ansible.builtin.debug:
-#    msg: "complete_theme_list: {{ complete_theme_list }}"
+- name: "Set complete_theme_list to specified or default theme list"
+  ansible.builtin.set_fact:
+    complete_theme_list: "{{ site.wp_settings.themes|default(wp_defaults.themes) }}"
+
+- name: "Ensure we have at least one theme specified for {{site.id}} on {{inventory_hostname}}"
+  ansible.builtin.fail:
+    msg: "No themes specified, need at least one"
+  when: complete_theme_list|length<=0
 
 - name: "Install specified themes not installed on {{ site.id }}"
   ansible.builtin.command: >

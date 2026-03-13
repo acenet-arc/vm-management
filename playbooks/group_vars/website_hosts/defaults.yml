@@ -7,8 +7,8 @@ wp_defaults:
   dissallow_file_mods: true
   auto_update_core: false
   force_ssl_admin: true
-  themes: ["twentytwentyfour"]
-  plugins: ["akismet", "limit-login-attempts-reloaded"]
+  themes: ["twentytwentyfive"]
+  plugins: ["limit-login-attempts-reloaded"]
   active_plugins: ["limit-login-attempts-reloaded"]
   remove_unspecified_themes: False
   remove_unspecified_plugins: False
@@ -16,8 +16,7 @@ om_defaults:
   cli_image:  "omeka-s-cli:latest"
   themes: ["default"]
   modules: 
-    - {"id":"Lockout"}
-  active_modules: ["Lockout"]
+    - {"id":"Lockout","active":true}
   modules_dir_writeable: false
   themes_dir_writeable: false
   base_docker_image: php:8.5.2-apache

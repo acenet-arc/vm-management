@@ -2,7 +2,7 @@
 
 - name: "Combine specified and default module lists"
   ansible.builtin.set_fact:
-    specified_module_list: "{{ om_defaults.modules + site.om_settings.modules|default([]) }}"
+    specified_module_list: "{{ site.om_settings.modules|default(om_defaults.modules) }}"
 
 - ansible.builtin.debug:
     msg: "specified_module_list={{ specified_module_list }}"
