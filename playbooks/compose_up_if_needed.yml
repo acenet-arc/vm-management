@@ -1,35 +1,24 @@
 - name: "Get compose statuses"
   ansible.builtin.command: docker compose -f {{ compose_file }} ls --format json --filter name="^{{ site.id }}$"
-  register: compose_ls
+  register: compose_ls_result
   changed_when: false
 
-- name: "Initialize statuses dictionary to empty dictionary"
+- name: "Create ansible compose_status variable from compose status output"
   ansible.builtin.set_fact:
-    statuses: "{{ {} }}"
+    compose_status: "{{(compose_ls_result.stdout|from_json)}}"
 
-- name: "Parse compose status output"
-  ansible.builtin.set_fact:
-    statuses: "{{ statuses|combine({
-      compose_item.Name:{'status':compose_item.Status}
-      }) }}"
-  loop: "{{ compose_ls.stdout }}"
-  loop_control:
-    loop_var: compose_item
+- name: "Display compose_status"
+  ansible.builtin.debug:
+    msg: "compose_status={{ compose_status }}"
 
 - name: "Initialize needs_up to true"
   ansible.builtin.set_fact:
     needs_up: true
 
-#- ansible.builtin.debug:
-#    msg: "site.id={{ site.id }} statuses={{ statuses }}"
-
-- name: "If compose project, {{ site.id }}, had a status, check that it is running"
+- name: "If got status 'running(2)' we don't need compose up"
   ansible.builtin.set_fact:
-    needs_up: "{{ statuses[site.id].status !='running(2)' }}"
-  when: site.id in statuses
-
-#- ansible.builtin.debug:
-#    msg: "needs_up={{ needs_up }}"
+    needs_up: false
+  when: compose_status|length>0 and compose_status[0].Status=='running(2)'
 
 - name:  "Bring compose project, {{ site.id }}, up if not already up"
   ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up --build -d
@@ -45,5 +34,4 @@
     WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}"
     WORDPRESS_AUTO_UPDATE_CORE: "{{ site.wp_settings.config.auto_update_core | default(wp_defaults.auto_update_core) }}"
     WORDPRESS_FORCE_SSL_ADMIN: "{{ site.wp_settings.config.force_ssl_admin | default(wp_defaults.force_ssl_admin) }}"
-    
   when: needs_up

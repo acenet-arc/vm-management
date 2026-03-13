@@ -30,17 +30,6 @@
     group: "root"
     mode: '0770'
 
-#- name: "Create database volume for {{ site.id }} as needed"
-#  ansible.builtin.file:
-#    path: "{{ container_base }}/{{ site.id }}/volumes/db"
-#    state: directory
-#    owner: "lxd"
-#    group: "docker"
-#    mode: '0770'
-#  when: ansible_distribution_major_version | int<24
-
-#NOTE: lxd user doesn't seem to exist on Ubuntu 24 as it did on 22
-#docker hub image page for mysql doesn't list "lxd" user, did it before?
 - name: "Create database volume directories for {{ site.id }} as needed"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/db"
@@ -48,4 +37,3 @@
     owner: "mysql"
     group: "mysql"
     mode: '0770'
-  when: ansible_distribution_major_version | int>=24
