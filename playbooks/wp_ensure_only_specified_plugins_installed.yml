@@ -23,9 +23,6 @@
     complete_plugin_list: "{{ site.wp_settings.plugins|default(wp_defaults.plugins) }}"
 - ansible.builtin.set_fact:
     complete_active_plugin_list: "{{ site.wp_settings.active_plugins|default(wp_defaults.active_plugins) }}"
-- ansible.builtin.debug:
-    msg: "complete_theme_list: {{ complete_theme_list }}"
-
 
 - ansible.builtin.debug:
     msg: "Installed Plugins: {{ plugin_name_list }}"
