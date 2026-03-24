@@ -120,7 +120,7 @@
         system: true
         create_home: false
       register: mysql_user_info
-      
+    
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
         file: wp_manage_site.yml
@@ -140,6 +140,42 @@
         label: "{{ item.id }}"
       vars:
         site: "{{ item }}"
-        
+    
     - name: "Remove dangling docker images"
       ansible.builtin.command: docker image prune -f
+    
+    - ansible.builtin.debug:
+        msg:
+        - '===================================================='
+        - '======= The following themes are unspecified ======='
+        - '===================================================='
+        - "= To keep them, add them to the site's themes list ="
+        - '= To remove them, set remove_unspecified_themes to ='
+        - '= true.                                            ='
+        - '===================================================='
+      run_once: true
+    
+    - name: "List unspecified themes"
+      ansible.builtin.set_fact:
+        dummy: "{{ dummy|default([])+[item]}}"
+      loop: "{{unspecified_themes}}"
+      when: unspecified_themes is defined and unspecified_themes|length>0
+
+    - ansible.builtin.debug:
+        msg:
+        - '===================================================='
+        - '== The following plugins/modules are unspecified ==='
+        - '===================================================='
+        - "= To keep them, add them to the site's             ="
+        - "= plugin/module list                               ="
+        - '= To remove them, set remove_unspecified_modules/  ='
+        - '= remove_unspecified_plugins true.                 ='
+        - '===================================================='
+      run_once: true
+    
+    - name: "List unspecified modules/plugins"
+      ansible.builtin.set_fact:
+        dummy: "{{ dummy|default([])+[item]}}"
+      loop: "{{unspecified_plugins}}"
+      when: unspecified_plugins is defined and unspecified_plugins|length>0
+      

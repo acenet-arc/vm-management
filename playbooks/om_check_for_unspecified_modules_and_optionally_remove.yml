@@ -29,13 +29,13 @@
   ansible.builtin.set_fact:
     remove_unspecified_modules: "{{ site.om_settings.remove_unspecified_modules|default(om_defaults.remove_unspecified_modules) }}"
 
-- name: "Initialize unspecified_module_ids to empty list"
+- name: "Initialize unspecified_module_ids_site to empty list"
   ansible.builtin.set_fact:
-    unspecified_module_ids: []
+    unspecified_module_ids_site: []
 
 - name: "Check if any unspecified modules installed on {{ site.id }}"
   ansible.builtin.set_fact:
-    unspecified_module_ids: "{{ unspecified_module_ids|default([])+[module_info.id] }}"
+    unspecified_module_ids_site: "{{ unspecified_module_ids_site|default([])+[{'site':site.id,'id':module_info.id}] }}"
   loop: "{{ current_module_infos }}"
   loop_control:
     loop_var: module_info
@@ -45,18 +45,23 @@
   ansible.builtin.debug:
     msg: "remove_unspecified_modules={{remove_unspecified_modules}}"
 
-- name: "Display unspecified modules"
-  ansible.builtin.debug:
-    msg: "unspecified_module_ids={{ unspecified_module_ids }} should be added to modules list in inventory OR removed by specifying remove_unspecified_modules: True and re-running."
-  failed_when: remove_unspecified_modules!=True
-  when: unspecified_module_ids|length>0
+#- name: "Display unspecified modules"
+#  ansible.builtin.debug:
+#    msg: "unspecified_module_ids={{ unspecified_module_ids }} should be added to modules list in inventory OR removed by specifying remove_unspecified_modules: True and re-running."
+#  failed_when: remove_unspecified_modules!=True
+#  when: unspecified_module_ids|length>0
 
 - name: "Remove unspecified modules on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli module:delete {{ module_id }} -f
-  loop: "{{ unspecified_module_ids }}"
+    omeka-s-cli module:delete {{ module.id }} -f
+  loop: "{{ unspecified_module_ids_site }}"
   loop_control:
-    loop_var: module_id
+    loop_var: module
   when: remove_unspecified_modules
+
+- name: "Add unspecified_module_ids_site to global list"
+  ansible.builtin.set_fact:
+    unspecified_plugins: "{{ (unspecified_plugins|default([])) + unspecified_module_ids_site}}"
+  when: not remove_unspecified_plugins

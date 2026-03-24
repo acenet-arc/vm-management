@@ -32,13 +32,15 @@
   ansible.builtin.set_fact:
     remove_unspecified_themes: "{{ site.om_settings.remove_unspecified_themes|default(om_defaults.remove_unspecified_themes) }}"
 
-- name: "Initialize unspecified_theme_ids to empty list"
+- name: "Initialize unspecified_themes_site to empty list"
   ansible.builtin.set_fact:
-    unspecified_theme_ids: []
+    unspecified_themes_site: []
 
 - name: "Check if any unspecified themes installed on {{ site.id }}"
   ansible.builtin.set_fact:
-    unspecified_theme_ids: "{{ unspecified_theme_ids+[theme_id] }}"
+    unspecified_themes_site: "{{ unspecified_themes_site+
+      [{ 'site':site.id,'id':theme_id }]
+      }}"
   loop: "{{ current_theme_ids }}"
   loop_control:
     loop_var: theme_id
@@ -48,18 +50,17 @@
   ansible.builtin.debug:
     msg: "remove_unspecified_themes={{remove_unspecified_themes}}"
 
-- name: "Display unspecified themes"
-  ansible.builtin.debug:
-    msg: "unspecified_theme_ids={{ unspecified_theme_ids }} should be added to theme list in inventory OR removed by specifying remove_unspecified_themes: True and re-running."
-  failed_when: remove_unspecified_themes!=True
-  when: unspecified_theme_ids|length>0
-  
 - name: "Remove unspecified themes on {{ site.id }}"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
-    omeka-s-cli theme:delete {{ theme_id }}
-  loop: "{{ unspecified_theme_ids }}"
+    omeka-s-cli theme:delete {{ theme.id }}
+  loop: "{{ unspecified_themes_site }}"
   loop_control:
-    loop_var: theme_id
+    loop_var: theme
   when: remove_unspecified_themes
+
+- name: "Add unspecified_themes_site to global list"
+  ansible.builtin.set_fact:
+    unspecified_themes: "{{ (unspecified_themes|default([])) + unspecified_themes_site}}"
+  when: not remove_unspecified_themes

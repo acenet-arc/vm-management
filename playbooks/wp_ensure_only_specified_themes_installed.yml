@@ -82,14 +82,28 @@
   ansible.builtin.set_fact:
     remove_unspecified_themes: "{{ site.wp_settings.remove_unspecified_themes|default(wp_defaults.remove_unspecified_themes) }}"
 
+- name: "Initialize unspecified_themes_site to empty list"
+  ansible.builtin.set_fact:
+    unspecified_themes_site: []
+
 - name: "Check if any unspecified themes installed on {{ site.id }}"
-  ansible.builtin.debug:
-    msg: "{{ theme_name }}"
+  ansible.builtin.set_fact:
+    unspecified_themes_site: "{{ unspecified_themes_site+
+      [{ 'site':site.id,'id':theme_id }]
+      }}"
   loop: "{{ theme_name_list }}"
   loop_control:
-    loop_var: theme_name
-  failed_when: not theme_name in complete_theme_list
-  when: remove_unspecified_themes!=True
+    loop_var: theme_id
+  when: theme_id not in complete_theme_list
+
+#- name: "Check if any unspecified themes installed on {{ site.id }}"
+#  ansible.builtin.debug:
+#    msg: "{{ theme_name }}"
+#  loop: "{{ theme_name_list }}"
+#  loop_control:
+#    loop_var: theme_name
+#  failed_when: not theme_name in complete_theme_list
+#  when: remove_unspecified_themes!=True
     
 - name: "Remove unspecified themes on {{ site.id }}"
   ansible.builtin.command: >
@@ -100,9 +114,13 @@
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
     -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.database.wp_cli_image | default(wp_defaults.cli_image) }}"
-    wp theme delete {{ theme_name }}
-  loop: "{{ theme_name_list }}"
+    wp theme delete {{ theme.id }}
+  loop: "{{ unspecified_themes_site }}"
   loop_control:
-    loop_var: theme_name
-  when: not theme_name in complete_theme_list and remove_unspecified_themes==True
-  
+    loop_var: theme
+  when: not theme.id in complete_theme_list and remove_unspecified_themes==True
+
+- name: "Add unspecified_themes_site to global list"
+  ansible.builtin.set_fact:
+    unspecified_themes: "{{ (unspecified_themes|default([])) + unspecified_themes_site}}"
+  when: not remove_unspecified_themes
