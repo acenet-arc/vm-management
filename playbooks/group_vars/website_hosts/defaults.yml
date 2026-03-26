@@ -17,8 +17,6 @@ om_defaults:
   themes: ["default"]
   modules: 
     - {"id":"Lockout","active":true}
-  modules_dir_writeable: false
-  themes_dir_writeable: false
   base_docker_image: php:8.5.2-apache
   cli_url: "https://github.com/GhentCDH/Omeka-S-Cli/releases/download/v0.9.1/omeka-s-cli.phar"
   omeka_s_version: "4.2.0"

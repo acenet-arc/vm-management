@@ -1,14 +1,3 @@
-- name: "Modules directory should be writable?"
-  ansible.builtin.set_fact:
-    modules_dir_writeable: "{{ site.om_settings.config.modules_dir_writeable_by_webserver | default(om_defaults.modules_dir_writeable) }}"
-
-- ansible.builtin.debug:
-    msg: "{{ site.om_settings.config.themes_dir_writeable_by_webserver | default(om_defaults.themes_dir_writeable) }}"
-    
-- name: "Themes directory should be writable?"
-  ansible.builtin.set_fact:
-    themes_dir_writeable: "{{ site.om_settings.config.themes_dir_writeable_by_webserver | default(om_defaults.themes_dir_writeable) }}"
-
 - name: "Ensure modules directory writable by webserver"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/modules"
@@ -16,17 +5,7 @@
     owner: "www-data"
     group: "www-data"
     mode: 0770
-  when: modules_dir_writeable
-  
-- name: "Ensure modules directory not writable by webserver"
-  ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/web/modules"
-    state: directory
-    owner: "root"
-    group: "root"
-    mode: 0750
-  when: not modules_dir_writeable
-  
+
 - name: "Ensure themes directory writable by webserver"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/themes"
@@ -34,17 +13,7 @@
     owner: "www-data"
     group: "www-data"
     mode: 0770
-  when: themes_dir_writeable
-  
-- name: "Ensure themes directory not writable by webserver"
-  ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/web/themes"
-    state: directory
-    owner: "root"
-    group: "root"
-    mode: 0750
-  when: not themes_dir_writeable
-  
+
 - name: "Ensure database.ini only readable by www-data"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/config/database.ini"
@@ -52,7 +21,7 @@
     owner: "www-data"
     group: "www-data"
     mode: 0400
-    
+
 - name: "Set permissions on web/files"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/files"
