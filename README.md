@@ -5,7 +5,7 @@ These playbooks have been developed only testing Ubuntu based VMs. Modifications
 
 As a first step, the playbook [`playbooks/update_apt_packages.yml`](./playbooks/update_apt_packages.yml) can be used to update apt-based VMs and reboot if required.
 
-The main funciton of this repository currently is to setup, update, backup, and restore WordPress and Omeka-S sites. This process involves creating an inventory (see: []()), running the playbook [`playbooks/manage_proxy.yml`](./playbooks/manage_proxy.yml) to setup the reverse proxxy in front of your sites and finally running [`playbooks/manage_sites.yml`](./playbooks/manage_sites.yml) to setup and later manage your sites.
+The main funciton of this repository currently is to setup, update, backup, and restore WordPress and Omeka-S sites. This process involves creating an inventory (see: [`inventory-example.yml`](./inventory-example.yml)), running the playbook [`playbooks/manage_proxy.yml`](./playbooks/manage_proxy.yml) to setup the reverse proxy in front of your sites and finally running [`playbooks/manage_sites.yml`](./playbooks/manage_sites.yml) to setup and later manage your sites.
 
 All of these playbooks should be run, regularly to update and backup sites.
 

@@ -9,6 +9,10 @@
   failed_when: false
   changed_when: false
 
+- name: "Initialize current_module_infos to empty list"
+  ansible.builtin.set_fact:
+    current_module_infos: []
+  
 - name: "Create module list from json"
   ansible.builtin.set_fact:
     current_module_infos: "{{ module_list_result.stdout | from_json }}"
@@ -64,4 +68,4 @@
 - name: "Add unspecified_module_ids_site to global list"
   ansible.builtin.set_fact:
     unspecified_plugins: "{{ (unspecified_plugins|default([])) + unspecified_module_ids_site}}"
-  when: not remove_unspecified_plugins
+  when: not remove_unspecified_modules

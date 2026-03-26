@@ -25,7 +25,9 @@
 - name: "Backup site, {{ site.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
-    backup "{{ container_base }}/{{ site.id }}" --exclude="{{ container_base }}/{{ site.id }}/volumes/db"
+    backup "./{{ site.id }}" --exclude="./{{ site.id }}/volumes/db"
+  args:
+    chdir: "{{container_base}}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
