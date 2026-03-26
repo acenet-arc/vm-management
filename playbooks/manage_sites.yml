@@ -22,6 +22,20 @@
     - name: Distribution major version
       debug: msg="{{ ansible_facts['distribution_major_version'] }}"
     
+    - name: "Ensure group 'mysql' exists"
+      ansible.builtin.group:
+        name: mysql
+        state: present
+    
+    - name: "Ensure we have mysql user"
+      ansible.builtin.user:
+        name: mysql
+        group: mysql
+        state: present
+        system: true
+        create_home: false
+      register: mysql_user_info
+    
     - name: "Ensure restic is installed and updated"
       ansible.builtin.include_tasks:
         file: restic_install_update.yml
@@ -106,20 +120,6 @@
       ansible.builtin.include_tasks:
         file: om_build_cli_image.yml
       when: has_om_site and (create_om_cli_dockerfile.changed or not image_present)
-    
-    - name: "Ensure group 'mysql' exists"
-      ansible.builtin.group:
-        name: mysql
-        state: present
-    
-    - name: "Ensure we have mysql user"
-      ansible.builtin.user:
-        name: mysql
-        group: mysql
-        state: present
-        system: true
-        create_home: false
-      register: mysql_user_info
     
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:

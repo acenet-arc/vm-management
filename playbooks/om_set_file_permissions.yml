@@ -1,18 +1,16 @@
-- name: "Ensure modules directory writable by webserver"
+- name: "Set file permissions for .htaccess"
   ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/web/modules"
-    state: directory
+    path: "{{ container_base }}/{{ site.id }}/volumes/web/.htaccess"
     owner: "www-data"
     group: "www-data"
-    mode: 0770
+    mode: u=r,g=,o=
 
-- name: "Ensure themes directory writable by webserver"
+- name: "Set file permissions for index.php"
   ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/web/themes"
-    state: directory
+    path: "{{ container_base }}/{{ site.id }}/volumes/web/index.php"
     owner: "www-data"
     group: "www-data"
-    mode: 0770
+    mode: u=r,g=,o=
 
 - name: "Ensure database.ini only readable by www-data"
   ansible.builtin.file:
@@ -20,12 +18,36 @@
     state: file
     owner: "www-data"
     group: "www-data"
-    mode: 0400
+    mode: u=r,g=,o=
+
+- name: "Ensure database.ini only readable by www-data"
+  ansible.builtin.file:
+    path: "{{ container_base }}/{{ site.id }}/volumes/web/config/local.config.php"
+    state: file
+    owner: "www-data"
+    group: "www-data"
+    mode: u=r,g=,o=
+
+- name: "Ensure modules directory writable by webserver"
+  ansible.builtin.file:
+    path: "{{ container_base }}/{{ site.id }}/volumes/web/modules"
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+    mode: u=wrx,g=,o=
+
+- name: "Ensure themes directory writable by webserver"
+  ansible.builtin.file:
+    path: "{{ container_base }}/{{ site.id }}/volumes/web/themes"
+    state: directory
+    owner: "www-data"
+    group: "www-data"
+    mode: u=wrx,g=,o=
 
 - name: "Set permissions on web/files"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/files"
     state: directory
     owner: "www-data"
-    group: "{{ ansible_user }}"
-    mode: 0775
+    group: "www-data"
+    mode: u=wrx,g=,o=
