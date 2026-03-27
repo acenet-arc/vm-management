@@ -3,21 +3,21 @@
     path: "{{ container_base }}/{{ site.id }}/volumes/web/.htaccess"
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=r,o=r
 
 - name: "Set file permissions for index.php"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/index.php"
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=,o=
 
 - name: "Set file permissions for wp-config.php"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/wp-config.php"
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=,o=
 
 - name: "Set file permissions for wp-admin/ directory"
   ansible.builtin.file:

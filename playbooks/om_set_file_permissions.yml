@@ -3,14 +3,14 @@
     path: "{{ container_base }}/{{ site.id }}/volumes/web/.htaccess"
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=r,o=r
 
 - name: "Set file permissions for index.php"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/web/index.php"
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=,o=
 
 - name: "Ensure database.ini only readable by www-data"
   ansible.builtin.file:
@@ -18,7 +18,7 @@
     state: file
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=,o=
 
 - name: "Ensure database.ini only readable by www-data"
   ansible.builtin.file:
@@ -26,7 +26,7 @@
     state: file
     owner: "www-data"
     group: "www-data"
-    mode: u=r,g=,o=
+    mode: u=rw,g=,o=
 
 - name: "Ensure modules directory writable by webserver"
   ansible.builtin.file:
