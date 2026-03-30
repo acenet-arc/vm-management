@@ -83,7 +83,7 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:upgrade {{ module.id }}
-  when: module_status!=False and module_status['state']=='needs_upgrade'
+  when: module_status!=False and module_status['state']=='needs_upgrade' and ( ("update" not in module.keys()) or (module["update"]==True) )
 
 - name: "Get module {{ module.id}}'s status"
   ansible.builtin.include_tasks:
