@@ -1,6 +1,7 @@
 ---
 
-- hosts: wp_hosts
+- hosts: 
+    - website_hosts
   become: true
   become_method: sudo
   gather_facts: false
@@ -17,9 +18,9 @@
     #- name: "Update restic"
     #  ansible.builtin.command: restic self-update
 
-    - name: "Backup Wordpress sites"
+    - name: "Backup Sites"
       ansible.builtin.include_tasks:
-        file: backup_site.yml
+        file: restic_backup_site.yml
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"
