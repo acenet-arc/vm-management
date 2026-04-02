@@ -21,7 +21,7 @@
 - name: "Check if new version needs to be downloaded"
   ansible.builtin.set_fact:
     needs_new_version_downloaded: True
-  when: ("version" in module.keys() ) and ( not module_status or module_status["version"]!=module["version"])
+  when: ("version" in module.keys() ) and ( module_status==False or module_status["version"]!=module["version"])
 
 - name: "Set version_postfix if version specified"
   ansible.builtin.set_fact:
@@ -33,26 +33,26 @@
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:uninstall {{ module.id }}
-  when: needs_new_version_downloaded and module_status
+  when: needs_new_version_downloaded and module_status!=False
 
 - name: "Download module {{ module.id }} from external databases"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:download {{ module.id }}{{ version_postfix }} --force
-  when: ((not module_status) and ("url" not in module.keys())) or needs_new_version_downloaded
+  when: ((module_status==False) and ("url" not in module.keys())) or needs_new_version_downloaded
 
 - name: "Download module {{ module.id }} via URL"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 "{{ om_defaults.cli_image }}"
     omeka-s-cli module:download {{ module.url }}
-  when: (not module_status) and ("url" in module.keys())
+  when: (module_status==False) and ("url" in module.keys())
 
 - name: "Get module {{ module.id }}'s status"
   ansible.builtin.include_tasks:
     file: om_get_module_status.yml
-  when: not module_status
+  when: module_status==False
 
 - name: "Installing module {{ module.id }}"
   ansible.builtin.command: >
