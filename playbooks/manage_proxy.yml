@@ -12,12 +12,12 @@
 
   tasks:
 
-    - name: "Distribution"
-      ansible.builtin.debug: msg="{{ ansible_distribution }}"
-    - name: "Distribution version"
-      ansible.builtin.debug: msg="{{ ansible_distribution_version }}"
-    - name: "Distribution major version"
-      ansible.builtin.debug: msg="{{ ansible_distribution_major_version }}"
+    - name: Distribution
+      debug: msg="{{ ansible_facts['distribution'] }}"
+    - name: Distribution version
+      debug: msg="{{ ansible_facts['distribution_version']}}"
+    - name: Distribution major version
+      debug: msg="{{ ansible_facts['distribution_major_version'] }}"
 
     - name: "Set date options-ssl-nginx.conf and ssl-dhparams.pem last updated"
       ansible.builtin.set_fact:
