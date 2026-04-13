@@ -47,6 +47,10 @@ ubuntu:
 proxy_hosts:
   vars:
     cert_bot_email: "<email-to-register-with-lets-encrypt>" # used for all hosts in the website_hosts group
+    include_cc_domain: false # if true will include the Compute Canada domain 
+      #name for the public IP of the VM. This works on Old Arbutus and Beluga, 
+      #but not on new Arbutus or other sites. If not defined Compute Canada
+      #domain name will not be included.
     server_ssl_settings: |
           ssl_certificate /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/fullchain.pem;
           ssl_certificate_key /etc/letsencrypt/live/<cc-cloud-standard-dns>.cloud.computecanada.ca/privkey.pem;
