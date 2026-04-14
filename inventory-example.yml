@@ -105,9 +105,16 @@ website_hosts:
   #  id: <a-unique-id-for-site>
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
-  #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup
-  #    restore_from_backup: true/false, if true will restore from latests or restore_snapshot_id if set
-  #    stop_after_restore: true/false, if true will stop playbook after site has been restored, default false
+  #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup. 
+  #      If not set, but restore_from_backup is true the restored snapshot will 
+  #      default to 'latest'. If this is set, but restore_from_backup is not set
+  #      it will restore this snapshot. If restore_from_backup is false it will
+  #      not restore from backup.
+  #    restore_from_backup: true/false, if true will restore from latests or 
+  #      restore_snapshot_id if set. If false, it will not restore even if 
+  #      restore_snapshot_id is set.
+  #    stop_after_restore: true/false, if true will stop playbook after site
+  #      has been restored, default false
   #    object_store:
   #      url: object store URL e.g. 's3:https://object-arbutus.cloud.computecanada.ca:443/conatiner-name'
   #      key_id: access key id for object store
