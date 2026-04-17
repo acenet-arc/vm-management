@@ -115,6 +115,7 @@
       vars:
         docker_image_name: "{{om_defaults.cli_image.split(':')[0]}}"
         docker_image_tag: "{{om_defaults.cli_image.split(':')[1]}}"
+      when: has_om_site
     
     - name: "Ensure Omeka-S CLI docker image built"
       ansible.builtin.include_tasks:
@@ -143,6 +144,7 @@
     
     - name: "Remove dangling docker images"
       ansible.builtin.command: docker image prune -f
+      when: skip_docker_host_role!=true
     
     - ansible.builtin.debug:
         msg:

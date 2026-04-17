@@ -37,16 +37,35 @@
     loop_var: ip
     label: "{{ip}}"
   when: has_ip_restrictions
-  
+
 - name: "Set login page location for Wordpress site"
   ansible.builtin.set_fact:
     login_location: "wp-admin"
-  when: site_is_wp
+  when: site_is_wp and login_location is not defined
   
 - name: "Set login page location for Omeka-S site"
   ansible.builtin.set_fact:
     login_location: "login"
-  when: site_is_om
+  when: site_is_om and login_location is not defined
+  
+- name: "Set login_location to 'login' since not defined yet"
+  ansible.builtin.set_fact:
+    login_location: "login"
+  when: login_location is not defined
+  
+- name: "Set login_location to explicitly set login_location for site"
+  ansible.builtin.set_fact:
+    login_location: "{{site.login_location}}"
+  when: site.login_location is defined
+  
+- name: "Set http_proto to default 'https'"
+  ansible.builtin.set_fact:
+    http_proto: "https"
+  
+- name: "Set http_proto to default site.http_container_proto"
+  ansible.builtin.set_fact:
+    http_proto: "{{site.http_container_proto}}"
+  when: site.http_container_proto is defined
   
 - name: "Add to nginx_vhosts for site {{site.id}}"
   ansible.builtin.set_fact:
@@ -56,8 +75,8 @@
       'state':'present','template':'proxy_vhost.j2',
       'filename': domain,
       'locations':{
-        'slash':'proxy_pass https://'+host_address+':'+site.port|string+';',
-        login_location:'proxy_pass https://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
+        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';',
+        login_location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
       }
       },{
       'listen': '80',

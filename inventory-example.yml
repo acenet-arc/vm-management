@@ -126,6 +126,11 @@ website_hosts:
   #    user_password: database user's password
   #    root_password: database root password
   #    name: name of the database
+  #  http_container_proto: can be either "http" or "https" will default to "https"
+  #    this indicates if the reverse proxy should use http or https between it
+  #    and the docker container.
+  #  login_location: <path-to-login-page> if omitted defaults to "login",
+  #    if site has wp_settings will be set to "wp-admin"
   #  login_ips: a list of IPs or CIDR ranges to allow access to the login or wp-admin pages
   #  #If site is a wordpress site include these settings
   #  wp_settings:
