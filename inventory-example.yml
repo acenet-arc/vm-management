@@ -130,7 +130,8 @@ website_hosts:
   #    this indicates if the reverse proxy should use http or https between it
   #    and the docker container.
   #  login_location: <path-to-login-page> if omitted defaults to "login",
-  #    if site has wp_settings will be set to "wp-admin"
+  #    if site has wp_settings will be set to "wp-admin". 
+  #    If set to "/" or "slash" will apply ip restrictions to whole site
   #  login_ips: a list of IPs or CIDR ranges to allow access to the login or wp-admin pages
   #  #If site is a wordpress site include these settings
   #  wp_settings:

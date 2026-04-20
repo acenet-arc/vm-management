@@ -67,6 +67,21 @@
     http_proto: "{{site.http_container_proto}}"
   when: site.http_container_proto is defined
   
+- name: "Set locations when login separate from slash"
+  ansible.builtin.set_fact:
+    locations: "{{ {
+        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';',
+        login_location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
+      } }}"
+  when: login_location != "/" and login_location != "slash"
+  
+- name: "Set locations when login not separate from slash"
+  ansible.builtin.set_fact:
+    locations: "{{ {
+        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';'+ip_restrictions
+      } }}"
+  when: login_location == "/" or login_location == "slash"
+  
 - name: "Add to nginx_vhosts for site {{site.id}}"
   ansible.builtin.set_fact:
     nginx_vhosts: "{{nginx_vhosts|default([]) + [{
@@ -74,12 +89,8 @@
       'server_name': domain,
       'state':'present','template':'proxy_vhost.j2',
       'filename': domain,
-      'locations':{
-        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';',
-        login_location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
-      }
-      },{
-      'listen': '80',
+      'locations': locations},
+      {'listen': '80',
       'server_name': domain,
       'filename': domain+'.80',
       'state': 'present',
