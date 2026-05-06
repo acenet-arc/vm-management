@@ -103,6 +103,7 @@ website_hosts:
   #- domains: "testansible9.ace-net.training"
   #  port: <port-number-used-by-docker>
   #  id: <a-unique-id-for-site>
+  #  root: <path-to-local-dir-to-serve>
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
   #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup. 
@@ -185,6 +186,9 @@ website_hosts:
     <host-alias>:
       cert_bot_email: "<email-to-register-with-lets-encrypt>" #override cert_bot_email set above for this host
       sites:
+        - domains: [""]
+          id: local_site
+          root: "/var/www/html/local_site"
         - domains: [""]
           port: 8081
           id: omekatest
