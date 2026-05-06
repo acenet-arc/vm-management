@@ -24,8 +24,8 @@
 - name: "Set server_ssl_settings automatically"
   ansible.builtin.set_fact:
     server_ssl_settings: |
-      ssl_certificate /etc/letsencrypt/live/{{proxy_domains[0]}}/fullchain.pem;
-      ssl_certificate_key /etc/letsencrypt/live/{{proxy_domains[0]}}/privkey.pem;
+      ssl_certificate /etc/letsencrypt/live/{{site_domains[0]}}/fullchain.pem;
+      ssl_certificate_key /etc/letsencrypt/live/{{site_domains[0]}}/privkey.pem;
       include /etc/letsencrypt/options-ssl-nginx.conf;
       ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
   when: not setting_manually
@@ -42,7 +42,7 @@
     certbot_expand: true
     certbot_auto_renew: false
     certbot_admin_email: "{{ cert_bot_email }}"
-    certbot_certs: "{{ [ {'domains':proxy_domains,'email': cert_bot_email } ] }}"
+    certbot_certs: "{{ [ {'domains':site_domains,'email': cert_bot_email } ] }}"
   when: not setting_manually
 
 - name: "Copy over options-ssl-nginx.conf"

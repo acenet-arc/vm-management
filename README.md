@@ -44,10 +44,14 @@ To set it up:
 
   1. Create storage access ID and secrete key: see: [Establishing access to your Arbutus Object Store](https://docs.alliancecan.ca/wiki/Arbutus_object_storage#Establishing_access_to_your_Arbutus_Object_Store)
   2. Create a new container to store restic backups using the "Containers" pane under "Object Store" left hand menu item.
-  3. Initialize a new restic repository using the access credentials created in step 1 and the Arbutus HTTPS endpoint url (something like `https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME` ) using the "s3" protocol so that `s3:` should be appended to that URL to be used with the `RESTIC_BACKUP_URL` mentioned below under the "Managing bakups" section. On the new Arbutus cloud the URL is now `https://object-arbutus.alliancecan.ca:443/<cloud-project-id>:<container-name>`. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the ID and Key created in step 1 above. The commands to do this will look like:
+  3. Initialize a new restic repository using the access credentials created in step 1 and the Arbutus HTTPS endpoint url. This step, initializing the repository, is no longer required. Initialization is done when needed using the playbooks automatically once your inventory has the backup settings configured, which include the `access` (`key_id`) and `secret` (`key`), and endpoint url.  
+  
+  The Arbutus HTTPS endpoint url is `https://object-arbutus.alliancecan.ca:443/<cloud-project-id>:<container-name>` replacing `<cloud-project-id>` with the UUID of your project and `<container-name>` with the name of your container. Legacy Arbutus has the url `https://object-arbutus.cloud.computecanada.ca:443/<container-name>`. Restic uses the "s3" protocol so that `s3:` should be prepended to that url for the `RESTIC_BACKUP_URL` variable mentioned below.  
+  
+  The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the ID and Key created in step 1 above. The commands to do this will look like:  
   
   `$ export RESTIC_PASSWORD="<restic-backup-repository-password>"`  
-  `$ export RESTIC_BACKUP_URL="s3:https://object-arbutus.cloud.computecanada.ca:443/CONTAINER_NAME"`  
+  `$ export RESTIC_BACKUP_URL="s3:https://object-arbutus.alliancecan.ca:443/<cloud-project-id>:<container-name>"`  
   `$ export AWS_ACCESS_KEY_ID="ID-from-step-1"`  
   `$ export AWS_SECRET_ACCESS_KEY="key-from-step-1"`  
   `$ restic -r $RESTIC_BACKUP_URL init`  

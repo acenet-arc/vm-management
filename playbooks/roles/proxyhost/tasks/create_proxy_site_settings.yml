@@ -110,9 +110,9 @@
     default_domain: "{{[ansible_host|replace('.','-')+'.cloud.computecanada.ca']}}"
   when: include_cc_domain is not defined or include_cc_domain==true
 
-- name: "Add to proxy_domains list for site {{site.id}}"
+- name: "Add to site_domains list for site {{site.id}}"
   ansible.builtin.set_fact:
-    proxy_domains: "{{proxy_domains|default(default_domain) + [domain]}}"
+    site_domains: "{{site_domains|default(default_domain) + [domain]}}"
   loop: "{{ site.domains }}"
   loop_control:
     loop_var: domain

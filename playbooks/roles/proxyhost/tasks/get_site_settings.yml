@@ -1,0 +1,11 @@
+---
+
+- name: "Get domains from host {{host}}"
+  ansible.builtin.include_tasks:
+    file: create_site_settings.yml
+  when: site.root is defined
+  
+- name: "Get domains from host {{host}}"
+  ansible.builtin.include_tasks:
+    file: create_proxy_site_settings.yml
+  when: site.root is not defined
