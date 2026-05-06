@@ -104,6 +104,9 @@ website_hosts:
   #  port: <port-number-used-by-docker>
   #  id: <a-unique-id-for-site>
   #  root: <path-to-local-dir-to-serve>
+  #  autoindex: <true/false> defaults to false. If true and root is defined 
+  #    will enable autoindexing of files and directories if an index file is 
+  #    not present
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
   #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup. 

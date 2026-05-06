@@ -1,8 +1,17 @@
 ---
 
+- name: "Initialize autoindex"
+  ansible.builtin.set_fact:
+    auto_index_config: "autoindex off;\n"
+
+- name: "Set autoindex"
+  ansible.builtin.set_fact:
+    auto_index_config: "autoindex on;\n"
+  when: site.autoindex is defined and site.autoindex==true
+
 - name: "Set basic '/' location"
   ansible.builtin.set_fact:
-    locations: "{{ {'slash': 'try_files $uri $uri/ =404;'} }}"
+    locations: "{{ {'slash': 'try_files $uri $uri/ =404;\n'+auto_index_config} }}"
 
 - name: "Add to nginx_vhosts for site {{site.id}}"
   ansible.builtin.set_fact:
