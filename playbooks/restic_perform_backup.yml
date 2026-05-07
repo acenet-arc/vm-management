@@ -1,0 +1,108 @@
+---
+
+- name: "Get restic version string"
+  ansible.builtin.command: restic version
+  register: restic_version_result
+  changed_when: false
+
+- name: "Parse restic version string"
+  ansible.builtin.set_fact:
+    restic_version_string: "{{(restic_version_result.stdout|split)[1]}}"
+  when: restic_version_result.rc==0
+  
+- ansible.builtin.debug:
+    msg: "restic_version_string={{restic_version_string}}"
+
+- name: "Restic 0.17 or newer?"
+  ansible.builtin.set_fact:
+    restic_017_or_newer: "{{restic_version_string is version('0.17','>=')}}"
+    
+- name: "Check if restic backup has been initialized"
+  ansible.builtin.command: >
+    time restic -r "{{ site.backup.object_store.url }}" cat config
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  register: restic_init_check_result
+  ignore_errors: true
+  changed_when: false
+  
+- name: "Inialize restic_repo_needs_init to false"
+  ansible.builtin.set_fact:
+    restic_repo_needs_init: false
+  
+- name: "Set restic_repo_needs_init to true"
+  ansible.builtin.set_fact:
+    restic_repo_needs_init: true
+  when: restic_017_or_newer and restic_init_check_result.rc==10
+  
+- name: "Inialize restic_repo_may_need_init to false"
+  ansible.builtin.set_fact:
+    restic_repo_may_need_init: false
+  
+- name: "Set restic_repo_may_need_init to true"
+  ansible.builtin.set_fact:
+    restic_repo_may_need_init: true
+  when: (not restic_017_or_newer) and restic_init_check_result.rc>0
+  
+- name: "Check if we should initialize restic repository"
+  ansible.builtin.pause:
+    prompt: "There was an error with your restic repository. It could be that it simply wasn't inialized. Would you like to initialize your restic repository (y) or stop (n)?"
+  register: initalize_prompt_result
+  when: restic_repo_may_need_init
+  
+- name: "Initialize restic repo"
+  ansible.builtin.command: >
+    time restic -r "{{ site.backup.object_store.url }}" init
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  when: restic_repo_needs_init or (restic_repo_may_need_init and (initalize_prompt_result.user_input=='y'))
+
+- name: "Stop due to an unresolved issue with the restic repository"
+  ansible.builtin.fail:
+    msg: "Can not continue with backup since there is an issue with the restic repository"
+  when: restic_repo_may_need_init and initalize_prompt_result.user_input!='y'
+  
+- name: "Dump {{ site.id }}'s database"
+  ansible.builtin.shell: >
+    docker exec -i -e MYSQL_ROOT_PASSWORD "{{ site.id }}"-db-1 sh -c
+    'mysqldump --all-databases -uroot -p$MYSQL_ROOT_PASSWORD' > 
+    {{ container_base }}/"{{ site.id }}"/all-databases.sq
+  environment:
+    MYSQL_ROOT_PASSWORD: "{{ site.database.root_password }}"
+  when: site.root is not defined
+
+- name: "Set {{ site.id }}'s database dump's owner"
+  ansible.builtin.file:
+    path: "{{ container_base }}/{{ site.id }}/all-databases.sq"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    state: file
+  when: site.root is not defined
+  
+- name: "Set backup args when backing up managed site"
+  ansible.builtin.set_fact:
+    backup_args: "./{{ site.id }} --exclude=./{{ site.id }}/volumes/db"
+  when: site.root is not defined
+  
+- name: "Set backup args when backing up a non-managed site"
+  ansible.builtin.set_fact:
+    backup_args: "{{ site.root }}"
+  when: site.root is defined
+  
+- ansible.builtin.debug:
+    msg: "container_base={{container_base}}"
+  
+- name: "Backup site, {{ site.id }}"
+  ansible.builtin.command: >
+    time restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
+    backup {{ backup_args }}
+  args:
+    chdir: "{{container_base}}"
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
