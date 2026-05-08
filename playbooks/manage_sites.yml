@@ -142,6 +142,16 @@
       vars:
         site: "{{ item }}"
     
+    - name: "Manage Static sites"
+      ansible.builtin.include_tasks:
+        file: static_manage_site.yml
+      when: site.root is defined
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"
+    
     - name: "Remove dangling docker images"
       ansible.builtin.command: docker image prune -f
       when: skip_docker_host_role is undefined or skip_docker_host_role!=true
@@ -180,4 +190,5 @@
         dummy: "{{ dummy|default([])+[item]}}"
       loop: "{{unspecified_plugins}}"
       when: unspecified_plugins is defined and unspecified_plugins|length>0
+
       

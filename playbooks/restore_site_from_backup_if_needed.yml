@@ -1,9 +1,24 @@
 ---
 
+- name: "Set site paths from root"
+  ansible.builtin.include_tasks:
+    file: set_site_paths_from_root.yml
+  when: site.root is defined
+
+- name: "Set site paths from id"
+  ansible.builtin.include_tasks:
+    file: set_site_paths_from_id.yml
+  when: site.root is not defined
+
+- name: "Set site_path"
+  ansible.builtin.set_fact:
+    site_path: "{{ base_path }}/{{ dir_name }}"
+  when: site.root is defined
+
 - name: "Check if there is a site directory"
   ansible.builtin.stat:
-    path: "{{ container_base }}/{{ site.id }}"
-  register: file
+    path: "{{ site_path }}"
+  register: file_site
 
 - name: "Check if there is a backup for site {{ site.id }}"
   ansible.builtin.command: >
@@ -13,7 +28,7 @@
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
-  when: (not file.stat.exists) or (site.backup.restore_snapshot_id is defined)
+  when: (not file_site.stat.exists) or (site.backup.restore_snapshot_id is defined)
   register: snapshotlist_result
   failed_when: false
   changed_when: false
@@ -38,7 +53,7 @@
 - name: "Parse backup snapshot list output into list"
   ansible.builtin.set_fact:
     snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
-  when: has_snapshotlist_result and ((not file.stat.exists) or (site.backup.restore_snapshot_id is defined))
+  when: has_snapshotlist_result and ((not file_site.stat.exists) or (site.backup.restore_snapshot_id is defined))
 
 - name: "Display snapshot list"
   ansible.builtin.debug:
@@ -48,10 +63,10 @@
 - name: "Initialize to_restore_missing to false"
   ansible.builtin.set_fact:
     to_restore_missing: false
-  
+
 - name: "Checking if we should restore from backup because of a missing site directory"
   ansible.builtin.set_fact:
-    to_restore_missing: "{{ (not file.stat.exists and (snapshotlist|length>0) ) }}"
+    to_restore_missing: "{{ (not file_site.stat.exists and (snapshotlist|length>0) ) }}"
   when: has_snapshotlist_result
 
 - name: "Initializing to_restore_requested to false"
@@ -119,18 +134,18 @@
     file: "compose_down.yml"
   vars:
     project_id: "{{ site.id }}"
-  when: to_restore
+  when: to_restore and site.root is not defined
 
 - name: "Remove {{ site.id }}'s directory for clean restore"
   ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}"
+    path: "{{ site_path }}"
     state: absent
   when: to_restore
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --verbose 
-    restore --tag "{{ site.id }}" --target {{ container_base }}/ "{{ snapshot_to_restore }}"
+    restore --tag "{{ site.id }}" --target {{ base_path }}/ "{{ snapshot_to_restore }}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"

@@ -82,26 +82,37 @@
     group: "{{ ansible_user }}"
     state: file
   when: site.root is not defined
+
+- name: "Set site paths from root"
+  ansible.builtin.include_tasks:
+    file: set_site_paths_from_root.yml
+  when: site.root is defined
   
+- name: "Set site paths from id"
+  ansible.builtin.include_tasks:
+    file: set_site_paths_from_id.yml
+  when: site.root is not defined
+
 - name: "Set backup args when backing up managed site"
   ansible.builtin.set_fact:
-    backup_args: "./{{ site.id }} --exclude=./{{ site.id }}/volumes/db"
+    backup_args: "./{{ dir_name }} --exclude=./{{ dir_name }}/volumes/db"
   when: site.root is not defined
   
 - name: "Set backup args when backing up a non-managed site"
   ansible.builtin.set_fact:
-    backup_args: "{{ site.root }}"
+    backup_args: "./{{ dir_name }}"
   when: site.root is defined
-  
-- ansible.builtin.debug:
-    msg: "container_base={{container_base}}"
+
+- name: "Backup settings"
+  ansible.builtin.debug:
+    msg: "base_path={{base_path}}, backup_args={{backup_args}}"
   
 - name: "Backup site, {{ site.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --tag "{{ site.id }}" --verbose 
     backup {{ backup_args }}
   args:
-    chdir: "{{container_base}}"
+    chdir: "{{base_path}}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"

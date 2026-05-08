@@ -1,0 +1,9 @@
+---
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    dir_name: "{{site.id}}"
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    base_path: "{{container_base}}"

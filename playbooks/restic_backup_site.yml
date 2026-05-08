@@ -1,15 +1,26 @@
 ---
 
+- name: "Set site_path from site.id"
+  ansible.builtin.set_fact:
+    site_path: "{{ container_base }}/{{site.id}}"
+  when: site.root is not defined
+  
+- name: "Set site_path from site.root"
+  ansible.builtin.set_fact:
+    site_path: "{{ site.root }}"
+  when: site.root is defined
+
 - name: "Check if site directory exists"
   ansible.builtin.stat:
-    path: "{{ container_base }}/{{site.id}}"
+    path: "{{ site_path }}"
   register: site_dir
 
-- name: "Needs a backup?"
+- name: "Check if we need to do a backup"
   ansible.builtin.set_fact:
-    need_backup: site.backup is defined and site.backup.perform_backup and (site_dir.stat.exists or site.root defined)
+    need_backup: "{{site.backup is defined and site.backup.perform_backup and (site_dir.stat.exists)|bool}}"
 
-- ansible.builtin.debug:
+- name: "Needs a backup?"
+  ansible.builtin.debug:
     msg: "need_backup={{need_backup}}"
 
 - name: "Backup Sites"

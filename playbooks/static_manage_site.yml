@@ -1,0 +1,13 @@
+- name: "Managing static Site {{ site.id }}"
+  ansible.builtin.debug:
+    msg: "Managing {{ site.id }}"
+
+- name: "Backup site {{ site.id }}"
+  ansible.builtin.include_tasks:
+    file: restic_backup_site.yml
+  when: site.backup is defined and site.backup.perform_backup
+
+- name: "Restore from backup if needed"
+  ansible.builtin.include_tasks:
+    file: restore_site_from_backup_if_needed.yml
+  when: site.backup is defined
