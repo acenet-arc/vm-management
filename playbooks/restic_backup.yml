@@ -8,10 +8,15 @@
 
   tasks:
 
-    - name: "Install restic"
-      ansible.builtin.apt:
-        name: restic
-        state: present
+    
+    - name: "Ensure restic is installed and updated"
+      ansible.builtin.include_tasks:
+        file: restic_install_update.yml
+  
+    #- name: "Install restic"
+    #  ansible.builtin.apt:
+    #    name: restic
+    #    state: present
 
     # TODO: Do I want to update restic every time I run this?
     # How often do I run this?
