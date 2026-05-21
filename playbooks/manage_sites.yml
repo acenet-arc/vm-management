@@ -47,6 +47,7 @@
       loop_control:
         loop_var: site
         label: "{{site.id}}"
+      when: site.manage_site is undefined or site.manage_site==true
     
     - name: "Host has Omeka-S site?"
       ansible.builtin.debug:
@@ -59,10 +60,20 @@
       loop_control:
         loop_var: site
         label: "{{site.id}}"
+      when: site.manage_site is undefined or site.manage_site==true
       
     - name: "Host has WordPress site?"
       ansible.builtin.debug:
           msg: "has_wp_site={{ has_wp_site }}"
+    
+    - name: "Create {{ container_base }} as needed"
+      ansible.builtin.file:
+        path: "{{ container_base }}/"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0770'
+      when: has_wp_site or has_om_site
     
     #NOTE: Wordpress site specific setup
     #not needed if only hosting Omeka sites on host
@@ -125,7 +136,7 @@
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
         file: wp_manage_site.yml
-      when: site.wp_settings is defined
+      when: site.wp_settings is defined and (site.manage_site is undefined or site.manage_site==true)
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"
@@ -135,7 +146,7 @@
     - name: "Manage Omeka sites"
       ansible.builtin.include_tasks:
         file: om_manage_site.yml
-      when: site.om_settings is defined
+      when: site.om_settings is defined and (site.manage_site is undefined or site.manage_site==true)
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"
@@ -145,7 +156,7 @@
     - name: "Manage Static sites"
       ansible.builtin.include_tasks:
         file: static_manage_site.yml
-      when: site.root is defined
+      when: site.root is defined and (site.manage_site is undefined or site.manage_site==true)
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"
@@ -190,5 +201,3 @@
         dummy: "{{ dummy|default([])+[item]}}"
       loop: "{{unspecified_plugins}}"
       when: unspecified_plugins is defined and unspecified_plugins|length>0
-
-      

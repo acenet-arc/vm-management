@@ -13,7 +13,6 @@
 - name: "Set site_path"
   ansible.builtin.set_fact:
     site_path: "{{ base_path }}/{{ dir_name }}"
-  when: site.root is defined
 
 - name: "Check if there is a site directory"
   ansible.builtin.stat:
