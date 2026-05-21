@@ -9,6 +9,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
+    {{cli_volume_option}} {{cli_php_settings_str}}
     -e WORDPRESS_DB_HOST=db
     -e WORDPRESS_DB_USER="{{ site.database.user }}"
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
@@ -20,6 +21,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
+    {{cli_volume_option}} {{cli_php_settings_str}}
     -e WORDPRESS_DB_HOST=db
     -e WORDPRESS_DB_USER="{{ site.database.user }}"
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
@@ -31,6 +33,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
+    {{cli_volume_option}} {{cli_php_settings_str}}
     -e WORDPRESS_DB_HOST=db
     -e WORDPRESS_DB_USER="{{ site.database.user }}"
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
@@ -42,6 +45,7 @@
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
     --network container:"{{ site.id }}"-web-1 --user 33:33
+    {{cli_volume_option}} {{cli_php_settings_str}}
     -e WORDPRESS_DB_HOST=db
     -e WORDPRESS_DB_USER="{{ site.database.user }}"
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"

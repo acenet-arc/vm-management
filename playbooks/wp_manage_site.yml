@@ -58,6 +58,30 @@
   ansible.builtin.fail:
       msg: "Stop after restor requested"
   when: site.backup.stop_after_restore is defined and site.backup.stop_after_restore==true
+
+- name: "Create WP CLI php settings file"
+  ansible.builtin.copy:
+    dest: "{{ container_base }}/{{ site.id }}/cli_php.ini"
+    content: "{{site.wp_settings.cli_php_settings}}"
+  when: site.wp_settings.cli_php_settings is defined
+  
+- name: "Intialize cli_php_settings_str to empty string"
+  ansible.builtin.set_fact:
+    cli_php_settings_str: ""
+
+- name: "Set wpcli volume option to empty string"
+  ansible.builtin.set_fact:
+    cli_volume_option: ""
+    
+- name: "Set wpcli volume option"
+  ansible.builtin.set_fact:
+    cli_volume_option: "--volume"
+  when: site.wp_settings.cli_php_settings is defined
+    
+- name: "Intialize cli_php_settings_str to empty string"
+  ansible.builtin.set_fact:
+    cli_php_settings_str: "{{ container_base }}/{{ site.id }}/cli_php.ini:/usr/local/etc/php/conf.d/cli_php.ini"
+  when: site.wp_settings.cli_php_settings is defined
   
 - name: "Install Wordpress core for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
