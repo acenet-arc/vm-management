@@ -107,6 +107,7 @@ website_hosts:
   #  autoindex: <true/false> defaults to false. If true and root is defined 
   #    will enable autoindexing of files and directories if an index file is 
   #    not present
+  #  manage_site: if false will not run wp_manage_site.yml or om_manage_site.yml
   #  backup:
   #    perform_backup: true/false if true the site will be backed up
   #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup. 

@@ -42,12 +42,11 @@
     
     - name: "Check if we have an Omeka-S site on {{inventory_hostname}}"
       ansible.builtin.set_fact:
-        has_om_site: "{{has_om_site|default(false) or site.om_settings is defined}}"
+        has_om_site: "{{ (has_om_site|default(false)) or (site.om_settings is defined and (site.manage_site is undefined or site.manage_site==true) ) }}"
       loop: "{{ sites }}"
       loop_control:
         loop_var: site
         label: "{{site.id}}"
-      when: site.manage_site is undefined or site.manage_site==true
     
     - name: "Host has Omeka-S site?"
       ansible.builtin.debug:
@@ -55,12 +54,11 @@
     
     - name: "Check if we have a WordPress site on {{inventory_hostname}}"
       ansible.builtin.set_fact:
-        has_wp_site: "{{has_wp_site|default(false) or site.wp_settings is defined}}"
+        has_wp_site: "{{ (has_wp_site|default(false)) or (site.wp_settings is defined and (site.manage_site is undefined or site.manage_site==true) ) }}"
       loop: "{{ sites }}"
       loop_control:
         loop_var: site
         label: "{{site.id}}"
-      when: site.manage_site is undefined or site.manage_site==true
       
     - name: "Host has WordPress site?"
       ansible.builtin.debug:
