@@ -141,9 +141,9 @@ website_hosts:
   #  #If site is a wordpress site include these settings
   #  wp_settings:
   #    wp_cli_image: <docker-image-to-use-for-wp-cli>
-  #    wp_cli_php_settings: extra settings to put in a php.ini file for 
+  #    cli_php_settings: extra settings to put in a php.ini file for 
   #    example:
-  #    wp_cli_php_settings: |
+  #    cli_php_settings: |
   #      memory_limit = 256M
   #    htaccess: <extra-settings-to-put-in-.htaccess-file, for example to 
   #      allow max file upload sizes of 500M
