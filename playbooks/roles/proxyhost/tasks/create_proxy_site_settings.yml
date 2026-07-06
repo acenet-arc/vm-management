@@ -1,6 +1,6 @@
 ---
 
-- name: "Set host address"
+- name: "Set host address for {{site.id}}"
   ansible.builtin.set_fact:
     host_address: >-
       {{ hostvars[host]['ansible_host'] if inventory_hostname!=host else 'localhost' }}
@@ -12,52 +12,30 @@
 - name: "Site {{site.id}} is WordPress site?"
   ansible.builtin.set_fact:
     site_is_wp: "{{site.wp_settings is defined |default(false)}}"
-    
-- name: "Site {{site.id}} login has IP restrictions?"
-  ansible.builtin.set_fact:
-    has_ip_restrictions: "{{site.login_ips is defined and site.login_ips|length|int>0}}"
 
-- ansible.builtin.debug:
-    msg: "has_ip_restrictions={{has_ip_restrictions}}"
-    
-- name: "Initialize ip_restrictions to empty string"
-  ansible.builtin.set_fact:
-    ip_restrictions: ""
+- name: "Getting IP restrictions for {{site.id}}"
+  ansible.builtin.include_tasks:
+    file: get_ip_restrictions.yml
 
-- name: "Set ip_restrictions to deny all"
+- name: "Initialize login_locations to empty list"
   ansible.builtin.set_fact:
-    ip_restrictions: "\ndeny all;"
-  when: has_ip_restrictions
-  
-- name: "Add allowed login IPs for site {{site.id}}"
-  ansible.builtin.set_fact:
-    ip_restrictions: "\nallow {{ip}};{{ip_restrictions}}"
-  loop: "{{site.login_ips}}"
-  loop_control:
-    loop_var: ip
-    label: "{{ip}}"
-  when: has_ip_restrictions
+    login_locations: []
 
 - name: "Set login page location for Wordpress site"
   ansible.builtin.set_fact:
-    login_location: "wp-admin"
-  when: site_is_wp and login_location is not defined
-  
+    login_locations: ["wp-admin"]
+  when: site_is_wp and site.login_locations is not defined
+
 - name: "Set login page location for Omeka-S site"
   ansible.builtin.set_fact:
-    login_location: "login"
-  when: site_is_om and login_location is not defined
-  
-- name: "Set login_location to 'login' since not defined yet"
+    login_locations: ["login"]
+  when: site_is_om and site.login_locations is not defined
+
+- name: "Set login_locations to explicitly set login_locations for site {{site.id}}"
   ansible.builtin.set_fact:
-    login_location: "login"
-  when: login_location is not defined
-  
-- name: "Set login_location to explicitly set login_location for site"
-  ansible.builtin.set_fact:
-    login_location: "{{site.login_location}}"
-  when: site.login_location is defined
-  
+    login_locations: "{{site.login_locations}}"
+  when: site.login_locations is defined
+
 - name: "Set http_proto to default 'https'"
   ansible.builtin.set_fact:
     http_proto: "https"
@@ -66,21 +44,35 @@
   ansible.builtin.set_fact:
     http_proto: "{{site.http_container_proto}}"
   when: site.http_container_proto is defined
-  
-- name: "Set locations when login separate from slash"
+
+- name: "Set '/' when not in login_locations"
   ansible.builtin.set_fact:
     locations: "{{ {
-        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';',
-        login_location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
+        'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';'
       } }}"
-  when: login_location != "/" and login_location != "slash"
+  when: '"/" not in login_locations and "slash" not in login_locations'
   
-- name: "Set locations when login not separate from slash"
+- name: "Set '/' when in login_locations"
   ansible.builtin.set_fact:
     locations: "{{ {
         'slash':'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+';'+ip_restrictions
       } }}"
-  when: login_location == "/" or login_location == "slash"
+  when: '"/" in login_locations or "slash" in login_locations'
+
+- ansible.builtin.debug:
+    msg: "login_locations={{login_locations}}"
+  
+- name: "Adding additional login locations"
+  ansible.builtin.set_fact:
+    locations: "{{ locations| combine({location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+location+';'+ip_restrictions}) }}"
+  loop: "{{login_locations}}"
+  when: 'location!="/" and location!="slash"'
+  loop_control:
+    loop_var: location
+  #login_location:'proxy_pass '+http_proto+'://'+host_address+':'+site.port|string+'/'+login_location+';'+ip_restrictions
+  
+- ansible.builtin.debug:
+    msg: "locations={{locations}}"
   
 - name: "Add to nginx_vhosts for site {{site.id}}"
   ansible.builtin.set_fact:

@@ -1,5 +1,9 @@
 ---
 
+- name: "Getting IP restrictions for {{site.id}}"
+  ansible.builtin.include_tasks:
+    file: get_ip_restrictions.yml
+
 - name: "Initialize autoindex"
   ansible.builtin.set_fact:
     auto_index_config: "autoindex off;\n"
@@ -9,9 +13,32 @@
     auto_index_config: "autoindex on;\n"
   when: site.autoindex is defined and site.autoindex==true
 
-- name: "Set basic '/' location"
+- name: "Set login_locations to empty list if not yet defined"
   ansible.builtin.set_fact:
-    locations: "{{ {'slash': 'try_files $uri $uri/ =404;\n'+auto_index_config} }}"
+    login_locations: []
+
+- name: "Set login_locations to explicitly set login_locations for site {{site.id}}"
+  ansible.builtin.set_fact:
+    login_locations: "{{site.login_locations}}"
+  when: site.login_locations is defined
+
+- name: "Set '/' location for site {{site.id}} at {{site.root}} when not in login_locations"
+  ansible.builtin.set_fact:
+    locations: "{{ {'slash':'try_files $uri $uri/ =404;\n'+auto_index_config} }}"
+  when: '"/" not in login_locations and "slash" not in login_locations'
+
+- name: "Set '/' location for site {{site.id}} at {{site.root}} when in login_locations"
+  ansible.builtin.set_fact:
+    locations: "{{ {'slash':'try_files $uri $uri/ =404;\n'+auto_index_config+ip_restrictions} }}"
+  when: '"/" in login_locations or "slash" in login_locations'
+
+- name: "Adding additional login locations"
+  ansible.builtin.set_fact:
+    locations: "{{ locations| combine({location:'try_files $uri $uri/ =404;\n'+ip_restrictions}) }}"
+  loop: "{{login_locations}}"
+  when: 'location!="/" and location!="slash"'
+  loop_control:
+    loop_var: location
 
 - name: "Add to nginx_vhosts for site {{site.id}}"
   ansible.builtin.set_fact:

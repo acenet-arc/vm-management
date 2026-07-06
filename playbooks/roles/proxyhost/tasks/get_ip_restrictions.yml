@@ -1,0 +1,33 @@
+- name: "Site {{site.id}} login has IP restrictions?"
+  ansible.builtin.set_fact:
+    has_ip_restrictions: "{{site.login_ips is defined and site.login_ips|length|int>0}}"
+
+- ansible.builtin.debug:
+    msg: "has_ip_restrictions={{has_ip_restrictions}}"
+    
+- name: "Initialize ip_restrictions to empty string"
+  ansible.builtin.set_fact:
+    ip_restrictions: ""
+
+- name: "Set ip_restrictions to deny all"
+  ansible.builtin.set_fact:
+    ip_restrictions: "\ndeny all;"
+  when: has_ip_restrictions
+  
+- name: "Add allowed login IPs for site {{site.id}}"
+  ansible.builtin.set_fact:
+    ip_restrictions: "\nallow {{ip}};{{ip_restrictions}}"
+  loop: "{{site.login_ips}}"
+  loop_control:
+    loop_var: ip
+    label: "{{ip}}"
+  when: has_ip_restrictions
+  
+- name: "Set ip_restricted_locations to empty list"
+  ansible.builtin.set_fact:
+    ip_restricted_locations: []
+
+- name: "Set ip_restricted_locations to site root"
+  ansible.builtin.set_fact:
+    ip_restricted_locations: ["/"]
+  when: has_ip_restrictions
