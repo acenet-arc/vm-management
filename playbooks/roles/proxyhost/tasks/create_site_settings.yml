@@ -40,25 +40,38 @@
   loop_control:
     loop_var: location
 
-- name: "Add to nginx_vhosts for site {{site.id}}"
+- name: "Create domains as empty string"
   ansible.builtin.set_fact:
-    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
-      'listen': '443 ssl',
-      'server_name': domain,
-      'state':'present','template':'proxy_vhost.j2',
-      'filename': domain,
-      'root': site.root,
-      'locations': locations},
-      {'listen': '80',
-      'server_name': domain,
-      'filename': domain+'.80',
-      'state': 'present',
-      'template': 'proxy_vhost_redirect.j2'
-      }]}}"
+    domains: ""
+
+- name: "Create domains string"
+  ansible.builtin.set_fact:
+    domains: '{{domains+" "+domain}}'
   loop: "{{ site.domains }}"
   loop_control:
     loop_var: domain
     label: "{{domain}}"
+
+- name: "Trim domains string"
+  ansible.builtin.set_fact:
+    domains: "{{domains|trim}}"
+
+- name: "Add to nginx_vhosts for site {{site.id}}"
+  ansible.builtin.set_fact:
+    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
+      'listen': '443 ssl',
+      'server_name': domains,
+      'state':'present','template':'proxy_vhost.j2',
+      'filename': site.domains[0],
+      'root': site.root,
+      'locations': locations},
+      {'listen': '80',
+      'server_name': domains,
+      'filename': site.domains[0]+'.80',
+      'state': 'present',
+      'template': 'proxy_vhost_redirect.j2'
+      }]}}"
+  when: site.domains is defined and site.domains|length>0
 
 - name: "Set no default domain"
   ansible.builtin.set_fact:
