@@ -1,3 +1,9 @@
+{% if item.uses_websockets is defined and item.uses_websockets -%}
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+{% endif -%}
 server {
 {% block server_begin %}{% endblock %}
 {% if item.server_name is defined %}
@@ -30,7 +36,10 @@ server {
 {{ value|indent(8, first=True) }}
 {% if location_proxy_settings is defined and "proxy_pass" in value -%}
 {{ location_proxy_settings|indent(8, first=True) }}
-{% endif %}
+{% endif -%}
+{% if item.uses_websockets is defined and item.uses_websockets %}
+        proxy_set_header Connection $connection_upgrade;
+{% endif -%}
     }
 {% endfor -%}
 {% endif -%}
