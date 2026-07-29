@@ -117,7 +117,7 @@ website_hosts:
   #      default to 'latest'. If this is set, but restore_from_backup is not set
   #      it will restore this snapshot. If restore_from_backup is false it will
   #      not restore from backup.
-  #    restore_from_backup: true/false, if true will restore from latests or 
+  #    restore_from_backup: true/false, if true will restore from latest or 
   #      restore_snapshot_id if set. If false, it will not restore even if 
   #      restore_snapshot_id is set.
   #    stop_after_restore: true/false, if true will stop playbook after site
