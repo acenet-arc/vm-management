@@ -8,8 +8,8 @@ wp_defaults:
   auto_update_core: false
   force_ssl_admin: true
   themes: ["twentytwentyfive"]
-  plugins: ["limit-login-attempts-reloaded"]
-  active_plugins: ["limit-login-attempts-reloaded"]
+  plugins: 
+    - {"id":"limit-login-attempts-reloaded","active":true}
   remove_unspecified_themes: False
   remove_unspecified_plugins: False
 om_defaults:

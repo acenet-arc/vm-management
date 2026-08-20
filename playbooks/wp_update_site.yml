@@ -41,6 +41,21 @@
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
     wp theme update --all
 
+- name: "Initialize plugins_excluded_from_update to empty string"
+  ansible.builtin.set_fact: 
+    plugins_excluded_from_update: ""
+  
+- name: "Create list of plugins names to exclude from updates"
+  ansible.builtin.set_fact:
+    plugins_excluded_from_update: "{{ plugins_excluded_from_update}}{{plugin.id}},"
+  when: (plugin["update"] is defined) and (plugin["update"]==false)
+  loop: "{{ complete_plugin_list }}"
+  loop_control:
+    loop_var: plugin
+  
+- ansible.builtin.debug:
+    msg: "plugins_excluded_from_update: {{ plugins_excluded_from_update }}"
+  
 - name: "Update Wordpress plugins on {{ site.id }} site"
   ansible.builtin.command: >
     docker run --rm --volumes-from "{{ site.id }}"-web-1 
@@ -51,7 +66,7 @@
     -e WORDPRESS_DB_PASSWORD="{{ site.database.user_password }}"
     -e WORDPRESS_DB_NAME="{{ site.database.name }}"
     "{{ site.wp_settings.wp_cli_image | default(wp_defaults.cli_image) }}"
-    wp plugin update --all
+    wp plugin update --all --exclude="{{plugins_excluded_from_update}}"
 
 - name: "Update containers"
   ansible.builtin.include_tasks:
