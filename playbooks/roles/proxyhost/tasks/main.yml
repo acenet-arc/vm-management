@@ -23,7 +23,7 @@
 
 - name: "Set server_ssl_settings automatically"
   ansible.builtin.set_fact:
-    server_ssl_settings: |
+    server_ssl_settings: |-
       ssl_certificate /etc/letsencrypt/live/{{site_domains[0]}}/fullchain.pem;
       ssl_certificate_key /etc/letsencrypt/live/{{site_domains[0]}}/privkey.pem;
       include /etc/letsencrypt/options-ssl-nginx.conf;

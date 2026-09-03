@@ -1,0 +1,148 @@
+---
+
+- name: "Site {{site.id}} is Omeka-S site?"
+  ansible.builtin.set_fact:
+    site_is_om: "{{site.om_settings is defined |default(false)}}"
+
+- name: "Site {{site.id}} is WordPress site?"
+  ansible.builtin.set_fact:
+    site_is_wp: "{{site.wp_settings is defined |default(false)}}"
+
+- name: "Set host address for {{site.id}}"
+  ansible.builtin.set_fact:
+    host_address: >-
+      {{ hostvars[host]['ansible_host'] if inventory_hostname!=host else 'localhost' }}
+
+- name: "Site {{site.id}} has root set?"
+  ansible.builtin.set_fact:
+    has_root: "{{site.root is defined}}"
+
+- name: "Set static site default locations"
+  ansible.builtin.set_fact:
+    location_settings: [{"path":"/"}]
+
+- name: "Initialize uses_websockets_any_location to False"
+  ansible.builtin.set_fact:
+    uses_websockets_any_location: False
+
+- name: "Set WordPress default locations"
+  ansible.builtin.set_fact:
+    location_settings: [{"path":"/","allowed_ips":[]},{"path":"wp-admin"},{"path":"wp-login.php"}]
+  when: site_is_wp
+  
+- name: "Set Omeka-S default locations"
+  ansible.builtin.set_fact:
+    location_settings: [{"path":"/","allowed_ips":[]},{"path":"login"},{"path":"admin"}]
+  when: site_is_om
+  
+- name: "Use specified locations"
+  ansible.builtin.set_fact:
+    location_settings: "{{site.locations}}"
+  when: site.locations is defined
+
+- name: "Initalize locations to empty dictionary"
+  ansible.builtin.set_fact:
+    locations: "{{ {} }}"
+  
+- name: "Creating locations settings for site {{site.id}}"
+  ansible.builtin.include_tasks:
+    file: create_location_settings.yml
+  when: location_settings is defined
+  loop: "{{location_settings}}"
+  loop_control:
+    loop_var: location
+
+#------------
+#below Needs review
+- name: "Create domains as empty string"
+  ansible.builtin.set_fact:
+    domains: ""
+  
+- name: "Create domains string"
+  ansible.builtin.set_fact:
+    domains: '{{domains+" "+domain}}'
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
+
+- name: "Trim domains string"
+  ansible.builtin.set_fact:
+    domains: "{{domains|trim}}"
+
+- name: "Add to nginx_vhosts for site {{site.id}} no root"
+  ansible.builtin.set_fact:
+    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
+      'listen': '443 ssl',
+      'server_name': domains,
+      'state':'present','template':'proxy_vhost.j2',
+      'filename': site.domains[0],
+      'uses_websockets': uses_websockets_any_location,
+      'locations': locations},
+      {'listen': '80',
+      'server_name': domains,
+      'filename': site.domains[0]+'.80',
+      'state': 'present',
+      'template': 'proxy_vhost_redirect.j2'
+      }]}}"
+  when: site.domains is defined and site.domains|length>0 and not has_root
+
+- name: "Add to nginx_vhosts for site {{site.id}} with root"
+  ansible.builtin.set_fact:
+    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
+      'listen': '443 ssl',
+      'server_name': domains,
+      'state':'present','template':'proxy_vhost.j2',
+      'filename': site.domains[0],
+      'uses_websockets': uses_websockets_any_location,
+      'root': site.root,
+      'locations': locations},
+      {'listen': '80',
+      'server_name': domains,
+      'filename': site.domains[0]+'.80',
+      'state': 'present',
+      'template': 'proxy_vhost_redirect.j2'
+      }]}}"
+  when: site.domains is defined and site.domains|length>0 and has_root
+  
+- name: "Set no default domain"
+  ansible.builtin.set_fact:
+    default_domain: []
+
+- name: "Set default domain to IP.cloud.computecanada.ca"
+  ansible.builtin.set_fact:
+    default_domain: "{{[ansible_host|replace('.','-')+'.cloud.computecanada.ca']}}"
+  when: include_cc_domain is not defined or include_cc_domain==true
+
+- name: "Add to site_domains list for site {{site.id}}"
+  ansible.builtin.set_fact:
+    site_domains: "{{site_domains|default(default_domain) + [domain]}}"
+  loop: "{{ site.domains }}"
+  loop_control:
+    loop_var: domain
+    label: "{{domain}}"
+
+#-----------------
+#Some debugging output
+#-----------------
+- ansible.builtin.debug:
+    msg: "site_is_wp={{site_is_wp}}"
+     
+- ansible.builtin.debug:
+    msg: "site_is_om={{site_is_om}}"
+
+- ansible.builtin.debug:
+    msg: "host_address={{host_address}}"
+
+- ansible.builtin.debug:
+    msg: "has_ip_restrictions={{has_ip_restrictions}}"
+
+- ansible.builtin.debug:
+    msg: "ip_restrictions={{ip_restrictions}}"
+
+- ansible.builtin.debug:
+    msg: "has_root={{has_root}}"
+
+- ansible.builtin.debug:
+    msg: "locations={{locations}}"
+

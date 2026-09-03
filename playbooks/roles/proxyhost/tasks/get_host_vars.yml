@@ -8,3 +8,7 @@
   loop_control:
     loop_var: site
     label: "{{site.id}}"
+
+#- name: "Stop for debugging"
+#  ansible.builtin.fail:
+#    msg: "Stopping for debugging"

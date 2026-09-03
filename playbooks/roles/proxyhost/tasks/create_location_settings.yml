@@ -1,0 +1,184 @@
+---
+
+- ansible.builtin.debug:
+    msg: "location={{location}}"
+
+- name: "Initialize port to empty string"
+  ansible.builtin.set_fact:
+    port: ""
+
+- name: "Set port from site port"
+  ansible.builtin.set_fact:
+    port: "{{site.port}}"
+  when: site.port is defined
+
+- name: "Set port from location port"
+  ansible.builtin.set_fact:
+    port: "{{location.port}}"
+  when: location.port is defined
+
+- name: "Set proxy_proto to default 'https'"
+  ansible.builtin.set_fact:
+    proxy_proto: "https"
+  when: not (port == "")
+
+- name: "Set proxy_proto to site value"
+  ansible.builtin.set_fact:
+    proxy_proto: "{{site.proxy_proto}}"
+  when: (site["proxy_proto"] is defined) and (port != "")
+  
+- name: "Set proxy_proto to location value"
+  ansible.builtin.set_fact:
+    proxy_proto: "{{location.proxy_proto}}"
+  when: (location["proxy_proto"] is defined) and (port != "")
+
+- ansible.builtin.debug:
+    msg: "port={{port}}"
+  when: not (port == "")
+
+- ansible.builtin.debug:
+    msg: "proxy_proto={{proxy_proto}}"
+  when: proxy_proto is defined
+
+- ansible.builtin.set_fact:
+    path: "{{ location['path'] }}"
+  
+- ansible.builtin.set_fact:
+    path: "slash"
+  when: location["path"]=="slash" or location["path"]=="/"
+
+- ansible.builtin.set_fact:
+    path_literal: "{{ path }}"
+
+- ansible.builtin.set_fact:
+    path_literal: "/"
+  when: path=="slash"
+
+- name: "Set allowed_ips to empty list (e.g. no IP restriction)"
+  ansible.builtin.set_fact:
+    allowed_ips: []
+
+- name: "Get allowed_ips from site"
+  ansible.builtin.set_fact:
+    allowed_ips: "{{site['allowed_ips']}}"
+  when: site['allowed_ips'] is defined
+
+- name: "Get allowed_ips from location"
+  ansible.builtin.set_fact:
+    allowed_ips: "{{location['allowed_ips']}}"
+  when: location['allowed_ips'] is defined
+
+- name: "Location has IP restrictions?"
+  ansible.builtin.set_fact:
+    has_ip_restrictions: "{{allowed_ips is defined and allowed_ips|length|int>0}}"
+
+- name: "Initialize ip_restrictions to empty string"
+  ansible.builtin.set_fact:
+    ip_restrictions: ""
+
+- name: "Add allowed login IPs for site {{site.id}}"
+  ansible.builtin.set_fact:
+    ip_restrictions: "{{ip_restrictions}}allow {{ip}};\n"
+  loop: "{{allowed_ips}}"
+  loop_control:
+    loop_var: ip
+    label: "{{ip}}"
+  when: has_ip_restrictions
+
+- name: "Set ip_restrictions to deny all"
+  ansible.builtin.set_fact:
+    ip_restrictions: "{{ip_restrictions}}deny all;\n"
+  when: has_ip_restrictions
+
+- name: "Initialize uses_websockets to False"
+  ansible.builtin.set_fact:
+    uses_websockets: False
+
+- name: "Set uses_websockets from site"
+  ansible.builtin.set_fact:
+    uses_websockets: "{{site['uses_websockets']}}"
+  when: site['uses_websockets'] is defined
+
+- name: "Set uses_websockets from location"
+  ansible.builtin.set_fact:
+    uses_websockets: "{{location['uses_websockets']}}"
+  when: location['uses_websockets'] is defined
+
+- name: "Set uses_websockets_any_location"
+  ansible.builtin.set_fact:
+    uses_websockets_any_location: "{{uses_websockets_any_location|default(False) or uses_websockets}}"
+    
+- name: "Use proxy settings without leading '/'"
+  ansible.builtin.set_fact:
+    settings: "{{ 'proxy_pass '+proxy_proto+'://'+host_address+':'+port|string+'/'+path_literal+';\n'+ip_restrictions+location_proxy_settings }}"
+  when: not (port == "") and path_literal[0]!="/"
+
+- name: "Use proxy settings with leading '/'"
+  ansible.builtin.set_fact:
+    settings: "{{ 'proxy_pass '+proxy_proto+'://'+host_address+':'+port|string+path_literal+';\n'+ip_restrictions+location_proxy_settings }}"
+  when: not (port == "") and path_literal[0]=="/"
+
+- name: "Use local site settings for location with leading '/'"
+  ansible.builtin.set_fact:
+    settings: "{{ 'try_files $uri $uri'+'/'+path_literal+' =404;\n'+ip_restrictions }}"
+  when: port == "" and path_literal[0]!="/"
+
+- name: "Use local site settings for location without leading '/'"
+  ansible.builtin.set_fact:
+    settings: "{{ 'try_files $uri $uri'+path_literal+' =404;\n'+ip_restrictions }}"
+  when: port == "" and path_literal[0]=="/"
+  
+- name: "If using websockets"
+  ansible.builtin.set_fact:
+    settings: "{{settings+'\nproxy_set_header Connection $connection_upgrade;'}}"
+  when: uses_websockets
+
+- name: "Initialize autoindex to false"
+  ansible.builtin.set_fact:
+    autoindex: false
+
+- name: "autoindex in site?"
+  ansible.builtin.set_fact:
+    autoindex: "{{site['autoindex']}}"
+  when: site["autoindex"] is defined
+
+- name: "autoindex in location?"
+  ansible.builtin.set_fact:
+    autoindex: "{{location['autoindex']}}"
+  when: location["autoindex"] is defined
+
+- name: "Disable autoindex"
+  ansible.builtin.set_fact:
+    settings: "{{settings+'\nautoindex off;'}}"
+  when: not autoindex
+  
+- name: "Enable autoindex"
+  ansible.builtin.set_fact:
+    settings: "{{settings+'\nautoindex on;'}}"
+  when: autoindex
+
+- name: "Both settings and autoindex set"
+  ansible.builtin.fail:
+    msg: "autoindex setting would be overwritten with given settings block"
+  when: location["settings"] is defined and autoindex
+
+- name: "Both settings and uses_websockets set"
+  ansible.builtin.fail:
+    msg: "uses_websockets setting would be overwritten with given settings block"
+  when: location["settings"] is defined and uses_websockets
+  
+- name: "Overriding settings with location settings"
+  ansible.builtin.set_fact:
+    settings: "{{location['settings']}}"
+  when: location["settings"] is defined
+
+- ansible.builtin.set_fact:
+    locations: "{{ locations|default({})| combine({path:settings}) }}"
+
+#TODO: remove the following files:
+# get_ip_restrictions.yml
+# ccreate_proxy_site_settings.yml
+# create_site_settings.yml
+# can probably flatten get_site_settings.yml into get_host_vars.yml 
+#   and remove get_site_settings.yml
+# 
