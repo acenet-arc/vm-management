@@ -174,11 +174,3 @@
 
 - ansible.builtin.set_fact:
     locations: "{{ locations|default({})| combine({path:settings}) }}"
-
-#TODO: remove the following files:
-# get_ip_restrictions.yml
-# ccreate_proxy_site_settings.yml
-# create_site_settings.yml
-# can probably flatten get_site_settings.yml into get_host_vars.yml 
-#   and remove get_site_settings.yml
-# 
