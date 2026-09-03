@@ -13,6 +13,9 @@
   failed_when: false
   changed_when: false
 
+- ansible.builtin.debug:
+    msg: "theme_list_result={{theme_list_result}}"
+  
 - name: "Parse themes list_result"
   ansible.builtin.set_fact:
     theme_list: "{{ theme_list_result.stdout | from_json }}"
