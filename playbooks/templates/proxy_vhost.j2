@@ -34,11 +34,6 @@ server {
     location /{{ key }} {
 {% endif -%}
 {{ value|indent(8, first=True) }}
-{#
-{% if location_proxy_settings is defined and "proxy_pass" in value -%}
-{{ location_proxy_settings|indent(8, first=True) }}
-{% endif -%}
-#}
 {{ '}'|indent(4, first=True) }}
 {% endfor -%}
 {% endif -%}
