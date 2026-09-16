@@ -1,0 +1,10 @@
+- name: "Backup extra_dir, {{ extra_dir.id }}"
+  ansible.builtin.command: >
+    time restic -r "{{ site.backup.object_store.url }}" --tag "{{ extra_dir.id }}" --verbose 
+    backup ./
+  args:
+    chdir: "{{extra_dir.path}}"
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"

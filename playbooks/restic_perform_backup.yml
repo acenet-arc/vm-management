@@ -13,7 +13,7 @@
 - ansible.builtin.debug:
     msg: "restic_version_string={{restic_version_string}}"
 
-- name: "Restic 0.17 or newer?"
+- name: "Determine if restic version is 0.17 or newer"
   ansible.builtin.set_fact:
     restic_017_or_newer: "{{restic_version_string is version('0.17','>=')}}"
     
@@ -117,3 +117,30 @@
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+
+
+#- name: "Backup Site {{site.id}}'s extra_dirs"
+#  ansible.builtin.command: >
+#    time restic -r "{{ site.backup.object_store.url }}" --tag "{{ extra_dir.id }}" --verbose 
+#    backup {{ extra_dir.path }}
+#  #TODO: what do I do about chdir??
+#  args:
+#    chdir: "{{base_path}}"
+#  loop: "{{ site.backup.extra_dirs }}"
+#  loop_control:
+#    label: "{{ extra_dir.path }}"
+#    loop_var: extra_dir
+#  when: site.backup.extra_dirs is defined
+#  environment:
+#    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+#    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+#    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+
+- name: "Backup Site {{site.id}}'s extra_dirs"
+  ansible.builtin.include_tasks:
+    file: restic_backup_extra_dir.yml
+  loop: "{{ site.backup.extra_dirs }}"
+  loop_control:
+    label: "{{ extra_dir.id }}"
+    loop_var: extra_dir
+  when: site.backup.extra_dirs is defined

@@ -19,7 +19,7 @@
   ansible.builtin.set_fact:
     need_backup: "{{site.backup is defined and site.backup.perform_backup and (site_dir.stat.exists)|bool}}"
 
-- name: "Needs a backup?"
+- name: "Site {{site.id}} needs a backup?"
   ansible.builtin.debug:
     msg: "need_backup={{need_backup}}"
 

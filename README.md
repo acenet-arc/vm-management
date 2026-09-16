@@ -125,14 +125,19 @@ An example of a command to run this playbook:
 
 NOTE: to update the version of php used on Omeka-S sites, `base_docker_image` in `group_vars/website_hosts/defaults.yml` should be updated to the most recent php docker image available.
 
-### Adding a new site to a host
+## restic_backup.yml
+
+The [`playbooks/restic_backup.yml`](playbooks/restic_backup.yml) playbook is used to perform backups of sites defined in your inventory file in exactly the same way as the `manage_sites.yml` playbook, except without doing anything else, just the backups.
+
+
+# Adding a new site to a host
 The `port` number must be unique from other site `port` values on that host VM.
 
 A new site must also have a unique `id` across all hosts otherwise it's backups will be associated with previous sites if the same backup repository is used for both. Since the `id` is used to reference backups during creation and restoration. It must also be unique within a host or there will be issues with the same directory/docker volumes trying to be used by two docker-compose setups.
 
-### Hardware requirements
+# Hardware requirements
 
-#### RAM
+## RAM
 The below table shows how much RAM is used on a VM with a given number of WordPress sites. In this test a VM with 4 cores and 7.5G of RAM was used. These sites were basic no-frills sites with only one theme (tutorstarter) and two plugins installed (filebird-document-library,filebird ) there was also little to no content on these sites.
 
 |Sites | RAM(GB)|
