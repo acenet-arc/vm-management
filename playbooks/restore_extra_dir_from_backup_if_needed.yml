@@ -1,0 +1,136 @@
+#TODO: a bunch of this is shared with restore_site_from_backup_if_needed,
+# with minor changes, maybe pull out into a common playbook?
+
+- name: "Check if there is a directory"
+  ansible.builtin.stat:
+    path: "{{ extra_dir.path }}"
+  register: file_extra_dir
+
+- name: "Check if there is a backup for extra_dir {{ extra_dir.id }}"
+  ansible.builtin.command: >
+    restic -r "{{ site.backup.object_store.url }}" --tag "{{ extra_dir.id }}" --verbose 
+    snapshots --json
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  when: (not file_extra_dir.stat.exists) or (file_extra_dir.restore_snapshot_id is defined)
+  register: snapshotlist_result
+  failed_when: false
+  changed_when: false
+  
+- name: "Check for errors getting snapshot list"
+  ansible.builtin.fail:
+    msg: >
+      Unable to get snapshot list from restic repository at 
+      '{{site.backup.object_store.url}}'
+      Did you forget to initialize the restic repository?
+  when: snapshotlist_result.rc is defined and snapshotlist_result.rc!=0
+  
+- name: "Initialize has_snapshotlist_result to false"
+  ansible.builtin.set_fact:
+    has_snapshotlist_result: false
+
+- name: "Check if we have any snapshots"
+  ansible.builtin.set_fact:
+    has_snapshotlist_result: "{{ snapshotlist_result.stdout|length >0}}"
+  when: snapshotlist_result is defined and snapshotlist_result.stdout is defined
+
+- name: "Parse backup snapshot list output into list"
+  ansible.builtin.set_fact:
+    snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
+  when: has_snapshotlist_result and ((not file_extra_dir.stat.exists) or (site.backup.restore_snapshot_id is defined))
+  
+- name: "Display snapshot list for {{ extra_dir.id }}"
+  ansible.builtin.debug:
+    msg: "snapshotlist={{ snapshotlist }}"
+  when: snapshotlist is defined
+  
+- name: "Initialize to_restore_missing to false"
+  ansible.builtin.set_fact:
+    to_restore_missing: false
+  
+- name: "Checking if we should restore from backup because of a missing site directory"
+  ansible.builtin.set_fact:
+    to_restore_missing: "{{ (not file_extra_dir.stat.exists and (snapshotlist|length>0) ) }}"
+  when: has_snapshotlist_result
+
+- name: "Initializing to_restore_requested to false"
+  ansible.builtin.set_fact:
+    to_restore_requested: false
+
+- name: "Checking if we should restore because of an explicitly set backup.restore_snapshot_id"
+  ansible.builtin.set_fact:
+    to_restore_requested: "{{ 
+    ( extra_dir.restore_snapshot_id == 'latest' and (snapshotlist|length>0) ) or
+    (extra_dir.restore_snapshot_id in snapshotlist) }}"
+  when: extra_dir.restore_snapshot_id is defined and snapshotlist is defined
+  
+- name: "Checking if we need to restore from backup"
+  ansible.builtin.set_fact:
+    to_restore: "{{ (to_restore_missing or to_restore_requested) }}"
+
+- name: "Checking if restore_from_backup explicitly set"
+  ansible.builtin.set_fact:
+    to_restore: "{{ extra_dir.restore_from_backup }}"
+  when: extra_dir.restore_from_backup is defined
+  
+- name: "Initialize snapshot_to_restore to 'latest'"
+  ansible.builtin.set_fact:
+    snapshot_to_restore: 'latest'
+  when: to_restore
+  
+- name: "Set snapshot_to_restore to specific ID"
+  ansible.builtin.set_fact:
+    snapshot_to_restore: "{{ extra_dir.restore_snapshot_id }}"
+  when: to_restore_requested and (extra_dir.restore_snapshot_id in snapshotlist)
+
+- name: "Verify requested extra_dir.restore_snapshot_id in list of snapshots"
+  ansible.builtin.fail:
+    msg: "Requested extra_dir.restore_snapshot_id={{ extra_dir.restore_snapshot_id }} not in list of snapshots={{ snapshotlist }}"
+  when: to_restore_requested and 
+    (extra_dir.restore_snapshot_id!='latest') and
+    (not (extra_dir.restore_snapshot_id in snapshotlist))
+  
+- name: "Are we restoring {{ extra_dir.id }} from a backup?"
+  ansible.builtin.debug:
+    msg: "to_restore={{ to_restore }}"
+
+- name: "Snapshot to restore {{ extra_dir.id }} from"
+  ansible.builtin.debug:
+    msg: "snapshot_to_restore={{ snapshot_to_restore }}"
+  when: to_restore
+  
+- name: "Set root_path when no slash on end"
+  ansible.builtin.set_fact:
+    root_path: "{{extra_dir.path}}"
+
+- name: "Set root_path when slash on end"
+  ansible.builtin.set_fact:
+    root_path: "{{extra_dir.path[:-1]}}"
+  when: extra_dir.path[-1]=="/"
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    dir_name: "{{root_path|basename}}"
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    base_path: "{{root_path|dirname}}"
+  
+- name: "Remove {{ extra_dir.id }}'s directory for clean restore"
+  ansible.builtin.file:
+    path: "{{ extra_dir.path }}"
+    state: absent
+  when: to_restore
+  
+- name: "Restore extra_dir, {{ extra_dir.id }}"
+  ansible.builtin.command: >
+    time restic -r "{{ site.backup.object_store.url }}" --verbose 
+    restore --tag "{{ extra_dir.id }}" --target {{ base_path }}/ "{{ snapshot_to_restore }}"
+  environment:
+    RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
+    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
+    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  when: to_restore
+  

@@ -54,7 +54,7 @@
     snapshotlist: "{{ snapshotlist_result.stdout | ansible.builtin.from_json | map(attribute='short_id')}}"
   when: has_snapshotlist_result and ((not file_site.stat.exists) or (site.backup.restore_snapshot_id is defined))
 
-- name: "Display snapshot list"
+- name: "Display snapshot list for {{site.id}}"
   ansible.builtin.debug:
     msg: "snapshotlist={{ snapshotlist }}"
   when: snapshotlist is defined
@@ -119,11 +119,11 @@
     (site.backup.restore_snapshot_id!='latest') and
     (not (site.backup.restore_snapshot_id in snapshotlist))
 
-- name: "Are we restoring from a backup?"
+- name: "Are we restoring {{site.id}} from a backup?"
   ansible.builtin.debug:
     msg: "to_restore={{ to_restore }}"
 
-- name: "Snapshot to restore"
+- name: "Snapshot to restore {{site.id}} from"
   ansible.builtin.debug:
     msg: "snapshot_to_restore={{ snapshot_to_restore }}"
   when: to_restore
@@ -150,7 +150,7 @@
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
   when: to_restore
-
+  
 - name: "Recored that site wasn't restored"
   ansible.builtin.set_fact:
     restored: "{{ restored|default({}) | ansible.builtin.combine({site.id:false}) }}"
@@ -160,3 +160,12 @@
   ansible.builtin.set_fact:
     restored: "{{ restored|default({}) | ansible.builtin.combine({site.id:true}) }}"
   when: to_restore
+
+- name: "Restore site {{site.id}}'s extra_dirs"
+  ansible.builtin.include_tasks:
+    file: restore_extra_dir_from_backup_if_needed.yml
+  loop: "{{ site.backup.extra_dirs }}"
+  loop_control:
+    label: "{{ extra_dir.id }}"
+    loop_var: extra_dir
+  when: site.backup.extra_dirs is defined

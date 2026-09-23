@@ -1,9 +1,26 @@
+- name: "Set root_path when no slash on end"
+  ansible.builtin.set_fact:
+    root_path: "{{extra_dir.path}}"
+
+- name: "Set root_path when slash on end"
+  ansible.builtin.set_fact:
+    root_path: "{{extra_dir.path[:-1]}}"
+  when: extra_dir.path[-1]=="/"
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    dir_name: "{{root_path|basename}}"
+
+- name: "Set dir_name from site.root"
+  ansible.builtin.set_fact:
+    base_path: "{{root_path|dirname}}"
+
 - name: "Backup extra_dir, {{ extra_dir.id }}"
   ansible.builtin.command: >
     time restic -r "{{ site.backup.object_store.url }}" --tag "{{ extra_dir.id }}" --verbose 
-    backup ./
+    backup ./{{ dir_name }}
   args:
-    chdir: "{{extra_dir.path}}"
+    chdir: "{{base_path}}"
   environment:
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"

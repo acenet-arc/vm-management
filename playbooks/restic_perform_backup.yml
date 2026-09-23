@@ -136,7 +136,7 @@
 #    AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
 #    AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
 
-- name: "Backup Site {{site.id}}'s extra_dirs"
+- name: "Backup site {{site.id}}'s extra_dirs"
   ansible.builtin.include_tasks:
     file: restic_backup_extra_dir.yml
   loop: "{{ site.backup.extra_dirs }}"
