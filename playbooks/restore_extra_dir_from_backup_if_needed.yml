@@ -70,7 +70,12 @@
   ansible.builtin.set_fact:
     to_restore: "{{ (to_restore_missing or to_restore_requested) }}"
 
-- name: "Checking if restore_from_backup explicitly set"
+- name: "Checking if restore_from_backup explicitly set for site.backup"
+  ansible.builtin.set_fact:
+    to_restore: "{{ site.backup.restore_from_backup }}"
+  when: site.backup.restore_from_backup is defined
+
+- name: "Checking if restore_from_backup explicitly set for directory"
   ansible.builtin.set_fact:
     to_restore: "{{ extra_dir.restore_from_backup }}"
   when: extra_dir.restore_from_backup is defined
@@ -118,11 +123,22 @@
   ansible.builtin.set_fact:
     base_path: "{{root_path|dirname}}"
   
+- name: "Check if we should remove {{ extra_dir.path }}"
+  ansible.builtin.pause:
+    prompt: "In order to restore {{ extra_dir.path }} to the same state in the backup this directory will be removed if it exists. Any data not backed up will be lost. Continue (y) or stop (n)?"
+  register: remove_dir_prompt_result
+  when: to_restore
+  
+- name: "Abort restore."
+  ansible.builtin.fail:
+    msg: "Not continuing with restore so as not to remove directory {{ extra_dir.path }}."
+  when: to_restore and remove_dir_prompt_result.user_input!='y'
+  
 - name: "Remove {{ extra_dir.id }}'s directory for clean restore"
   ansible.builtin.file:
     path: "{{ extra_dir.path }}"
     state: absent
-  when: to_restore
+  when: to_restore and remove_dir_prompt_result.user_input=='y'
   
 - name: "Restore extra_dir, {{ extra_dir.id }}"
   ansible.builtin.command: >
@@ -132,5 +148,14 @@
     RESTIC_PASSWORD: "{{ site.backup.restic.password }}"
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
+  register: restore_result
   when: to_restore
-  
+
+- ansible.builtin.set_fact:
+    restored_dir: "{{ (((restore_result.stdout_lines[0] | regex_findall('\\[.*\\]'))[0][1:-1])|split('/')) [-1] }}"
+  when: to_restore
+
+- name: "Moving restored directory '{{ restored_dir }}' to new directory '{{ dir_name }}'"
+  ansible.builtin.command: >
+    mv "{{base_path}}/{{restored_dir}}" "{{base_path}}/{{dir_name}}"
+  when: to_restore and (restored_dir != dir_name)

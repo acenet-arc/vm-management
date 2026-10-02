@@ -135,11 +135,22 @@
     project_id: "{{ site.id }}"
   when: to_restore and site.root is not defined
 
+- name: "Check if we should remove {{ site_path }}"
+  ansible.builtin.pause:
+    prompt: "In order to restore {{ site_path }} to the same state in the backup this directory will be removed if it exists. Any data not backed up will be lost. Continue (y) or stop (n)?"
+  register: remove_dir_prompt_result
+  when: to_restore
+
+- name: "Abort restore."
+  ansible.builtin.fail:
+    msg: "Not continuing with restore so as not to remove directory {{ site_path }}."
+  when: to_restore and remove_dir_prompt_result.user_input!='y'
+
 - name: "Remove {{ site.id }}'s directory for clean restore"
   ansible.builtin.file:
     path: "{{ site_path }}"
     state: absent
-  when: to_restore
+  when: to_restore and remove_dir_prompt_result.user_input=='y'
 
 - name: "Restore site, {{ site.id }}"
   ansible.builtin.command: >
@@ -150,7 +161,7 @@
     AWS_ACCESS_KEY_ID: "{{ site.backup.object_store.key_id }}"
     AWS_SECRET_ACCESS_KEY: "{{ site.backup.object_store.key }}"
   when: to_restore
-  
+
 - name: "Recored that site wasn't restored"
   ansible.builtin.set_fact:
     restored: "{{ restored|default({}) | ansible.builtin.combine({site.id:false}) }}"

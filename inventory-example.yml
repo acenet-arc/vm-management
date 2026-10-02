@@ -111,7 +111,13 @@ website_hosts:
   #    set to True. Not needed for WordPress, Omeka-S, or static sites.
   #  manage_site: if false will not run wp_manage_site.yml or om_manage_site.yml
   #  backup:
-  #    perform_backup: true/false if true the site will be backed up
+  #    perform_backup: true/false if true the site will be backed up. When 
+  #      running the manage_sites playbook, backups are preformed first before
+  #      anyother substantial actions are taken, including restoring from a
+  #      backup. This means, that if restore_from_backup is true, and 
+  #      perform_backup is also true, the site should be restored to exactly the
+  #      state it was when the playbook started running provided no explicit 
+  #      restore_snapshot_id is specified since it defaults to 'latest'.
   #    restore_snapshot_id: <snapshot-id-or-latest> to restore from backup. 
   #      If not set, but restore_from_backup is true the restored snapshot will 
   #      default to 'latest'. If this is set, but restore_from_backup is not set
@@ -119,7 +125,10 @@ website_hosts:
   #      not restore from backup.
   #    restore_from_backup: true/false, if true will restore from latest or 
   #      restore_snapshot_id if set. If false, it will not restore even if 
-  #      restore_snapshot_id is set.
+  #      restore_snapshot_id is set. A restore from a backup reverts all files
+  #      and directories that to the state they are in that backup.
+  #      This means that local changes since the backup it is restoring from
+  #      will be lost if not already backed up.
   #    stop_after_restore: true/false, if true will stop playbook after site
   #      has been restored, default false
   #    object_store:
