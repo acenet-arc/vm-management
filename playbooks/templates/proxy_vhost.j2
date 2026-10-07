@@ -4,8 +4,20 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 {% endif -%}
-server {
 
+#agents to block
+map $http_user_agent $block_user_agent {
+    default         0;
+    ~*claudebot     1;
+    ~*amazonbot     1;
+    ""              1;  # Block empty user agents
+}
+server {
+  
+  if ($block_user_agent) {
+    return 403;
+  }
+  
   limit_req zone=one burst=10;
 
 {% block server_begin %}{% endblock %}
