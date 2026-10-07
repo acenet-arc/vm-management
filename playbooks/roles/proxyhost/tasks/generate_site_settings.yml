@@ -27,7 +27,7 @@
 
 - name: "Set WordPress default locations"
   ansible.builtin.set_fact:
-    location_settings: [{"path":"/","allowed_ips":[]},{"path":"wp-admin"},{"path":"wp-login.php"}]
+    location_settings: [{"path":"/","allowed_ips":[]},{"path":"wp-admin"},{"path":"wp-login.php"},{"path":"xmlrpc.php","allowed_ips":["127.0.0.1"]}]
   when: site_is_wp
   
 - name: "Set Omeka-S default locations"
