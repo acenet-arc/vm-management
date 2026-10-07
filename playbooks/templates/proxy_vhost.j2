@@ -6,7 +6,7 @@ map $http_upgrade $connection_upgrade {
 {% endif -%}
 server {
 
-  limit_req zone=one burst=5;
+  limit_req zone=one burst=10;
 
 {% block server_begin %}{% endblock %}
 {% if item.server_name is defined %}
