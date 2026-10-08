@@ -68,6 +68,5 @@
     nginx_package_name: "nginx,nginx-core"
     nginx_remove_default_vhost: true
     nginx_listen_ipv6: false
-    nginx_extra_http_options: "limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;"
 
 #- name: "Set up postfix for mail relay"
