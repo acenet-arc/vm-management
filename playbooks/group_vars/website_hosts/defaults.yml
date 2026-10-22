@@ -17,7 +17,13 @@ om_defaults:
   themes: ["default"]
   modules: 
     - {"id":"Lockout","active":true}
-  base_docker_image: php:8.5-apache
+  
+  #NOTE: image will not get rebulit unless base_docker_image variable changes
+  #even if there is a newer version of the image of the same tag. For example
+  # if base_docker_image: php:8.5-apache and the current image was php:8.5.10-apache
+  # it would create a new image even if the image was updated to php:8.5.12-apache
+  # unless the base_docker_image variable actually changes.
+  base_docker_image: php:8.5.12-apache
   cli_url: "https://github.com/GhentCDH/Omeka-S-Cli/releases/download/v0.14.1/omeka-s-cli.phar"
   omeka_s_version: "4.2.1"
   remove_unspecified_themes: False

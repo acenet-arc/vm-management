@@ -62,7 +62,7 @@
       
     - name: "Host has WordPress site?"
       ansible.builtin.debug:
-          msg: "has_wp_site={{ has_wp_site }}"
+        msg: "has_wp_site={{ has_wp_site }}"
     
     - name: "Create {{ container_base }} as needed"
       ansible.builtin.file:
