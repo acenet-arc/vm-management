@@ -37,3 +37,4 @@
     owner: "mysql"
     group: "mysql"
     mode: '0770'
+  when: make_db_volume

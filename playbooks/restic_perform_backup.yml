@@ -73,7 +73,7 @@
     {{ container_base }}/"{{ site.id }}"/all-databases.sq
   environment:
     MYSQL_ROOT_PASSWORD: "{{ site.database.root_password }}"
-  when: site.root is not defined
+  when: site.wp_settings is defined or site.om_settings is defined
 
 - name: "Set {{ site.id }}'s database dump's owner"
   ansible.builtin.file:
@@ -81,27 +81,27 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     state: file
-  when: site.root is not defined
+  when: site.wp_settings is defined or site.om_settings is defined
 
 - name: "Set site paths from root"
   ansible.builtin.include_tasks:
     file: set_site_paths_from_root.yml
-  when: site.root is defined
+  when: site.static_settings is defined
   
 - name: "Set site paths from id"
   ansible.builtin.include_tasks:
     file: set_site_paths_from_id.yml
-  when: site.root is not defined
+  when: site.wp_settings is defined or site.om_settings is defined
 
 - name: "Set backup args when backing up managed site"
   ansible.builtin.set_fact:
     backup_args: "./{{ dir_name }} --exclude=./{{ dir_name }}/volumes/db"
-  when: site.root is not defined
+  when: site.wp_settings is defined or site.om_settings is defined
   
 - name: "Set backup args when backing up a non-managed site"
   ansible.builtin.set_fact:
     backup_args: "./{{ dir_name }}"
-  when: site.root is defined
+  when: site.static_settings is defined
 
 - name: "Backup settings"
   ansible.builtin.debug:

@@ -19,6 +19,8 @@
 - name: "Make site directories as needed"
   ansible.builtin.include_tasks:
     file: make_site_directories_as_needed.yml
+  vars:
+    make_db_volume: true
 
 - name: "Compose down if supporting files changed"
   ansible.builtin.include_tasks:

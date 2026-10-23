@@ -15,7 +15,7 @@
 
 - name: "Site {{site.id}} has root set?"
   ansible.builtin.set_fact:
-    has_root: "{{site.root is defined}}"
+    has_root: "{{site.static_settings.root is defined}}"
 
 - name: "Set static site default locations"
   ansible.builtin.set_fact:
@@ -85,25 +85,7 @@
       'state': 'present',
       'template': 'proxy_vhost_redirect.j2'
       }]}}"
-  when: site.domains is defined and site.domains|length>0 and not has_root
-
-- name: "Add to nginx_vhosts for site {{site.id}} with root"
-  ansible.builtin.set_fact:
-    nginx_vhosts: "{{nginx_vhosts|default([]) + [{
-      'listen': '443 ssl',
-      'server_name': domains,
-      'state':'present','template':'proxy_vhost.j2',
-      'filename': site.domains[0],
-      'uses_websockets': uses_websockets_any_location,
-      'root': site.root,
-      'locations': locations},
-      {'listen': '80',
-      'server_name': domains,
-      'filename': site.domains[0]+'.80',
-      'state': 'present',
-      'template': 'proxy_vhost_redirect.j2'
-      }]}}"
-  when: site.domains is defined and site.domains|length>0 and has_root
+  when: site.domains is defined and site.domains|length>0
   
 - name: "Set no default domain"
   ansible.builtin.set_fact:

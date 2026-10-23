@@ -3,12 +3,12 @@
 - name: "Set site paths from root"
   ansible.builtin.include_tasks:
     file: set_site_paths_from_root.yml
-  when: site.root is defined
+  when: site.static_settings is defined
 
 - name: "Set site paths from id"
   ansible.builtin.include_tasks:
     file: set_site_paths_from_id.yml
-  when: site.root is not defined
+  when: site.wp_settings is defined or site.om_settings is defined
 
 - name: "Set site_path"
   ansible.builtin.set_fact:
@@ -133,7 +133,7 @@
     file: "compose_down.yml"
   vars:
     project_id: "{{ site.id }}"
-  when: to_restore and site.root is not defined
+  when: to_restore
 
 - name: "Check if we should remove {{ site_path }}"
   ansible.builtin.pause:

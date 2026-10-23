@@ -2,17 +2,17 @@
 
 - name: "Set root path when no slash on end"
   ansible.builtin.set_fact:
-    root_path: "{{site.root}}"
+    root_path: "{{site.static_settings.root}}"
 
 - name: "Set root path when slash on end"
   ansible.builtin.set_fact:
-    root_path: "{{site.root[:-1]}}"
-  when: site.root[-1]=="/"
+    root_path: "{{site.static_settings.root[:-1]}}"
+  when: site.static_settings.root[-1]=="/"
 
-- name: "Set dir_name from site.root"
+- name: "Set dir_name from site.static_settings.root"
   ansible.builtin.set_fact:
     dir_name: "{{root_path|basename}}"
 
-- name: "Set dir_name from site.root"
+- name: "Set dir_name from site.static_settings.root"
   ansible.builtin.set_fact:
     base_path: "{{root_path|dirname}}"

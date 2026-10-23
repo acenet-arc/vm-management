@@ -26,6 +26,18 @@
       ansible.builtin.include_tasks:
         file: restic_install_update.yml
     
+    - name: "Check if we have a static site on {{inventory_hostname}}"
+      ansible.builtin.set_fact:
+        has_static_site: "{{ (has_static_site|default(false)) or (site.static_settings is defined and (site.manage_site is undefined or site.manage_site==true) ) }}"
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+        label: "{{site.id}}"
+      
+    - name: "Host has Static site?"
+      ansible.builtin.debug:
+        msg: "has_static_site={{ has_static_site }}"
+    
     - name: "Check if we have an Omeka-S site on {{inventory_hostname}}"
       ansible.builtin.set_fact:
         has_om_site: "{{ (has_om_site|default(false)) or (site.om_settings is defined and (site.manage_site is undefined or site.manage_site==true) ) }}"
@@ -73,7 +85,20 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: '0770'
-      when: has_wp_site or has_om_site
+      when: has_wp_site or has_om_site or has_static_site
+    
+    #NOTE: Wordpress site specific setup
+    #not needed if only hosting Omeka sites on host
+    - name: "Copy WordPress supporting files"
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ container_base }}/{{ item }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      loop:
+        - docker-compose-static.yml
+      register: copy_static_supporting_files
+      when: has_static_site
     
     #NOTE: Wordpress site specific setup
     #not needed if only hosting Omeka sites on host
@@ -133,6 +158,16 @@
         file: om_build_cli_image.yml
       when: has_om_site and (create_om_cli_dockerfile.changed or not image_present)
     
+    - name: "Manage Static sites"
+      ansible.builtin.include_tasks:
+        file: static_manage_site.yml
+      when: site.static_settings is defined and (site.manage_site is undefined or site.manage_site==true)
+      loop: "{{ sites }}"
+      loop_control:
+        label: "{{ item.id }}"
+      vars:
+        site: "{{ item }}"
+    
     - name: "Manage WordPress sites"
       ansible.builtin.include_tasks:
         file: wp_manage_site.yml
@@ -147,16 +182,6 @@
       ansible.builtin.include_tasks:
         file: om_manage_site.yml
       when: site.om_settings is defined and (site.manage_site is undefined or site.manage_site==true)
-      loop: "{{ sites }}"
-      loop_control:
-        label: "{{ item.id }}"
-      vars:
-        site: "{{ item }}"
-    
-    - name: "Manage Static sites"
-      ansible.builtin.include_tasks:
-        file: static_manage_site.yml
-      when: site.root is defined and (site.manage_site is undefined or site.manage_site==true)
       loop: "{{ sites }}"
       loop_control:
         label: "{{ item.id }}"

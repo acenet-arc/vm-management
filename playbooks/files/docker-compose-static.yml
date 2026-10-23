@@ -1,0 +1,25 @@
+services:
+  
+  web:
+    image: ubuntu/apache2
+    #image: php:8.5.12-apache
+    restart: always
+    ports:
+      - ${LOCAL_PORT}:443
+    volumes:
+      - webv:/var/www/html
+      - ap_confv:/etc/apache2
+
+volumes:
+  webv:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/web
+  ap_confv:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: ./${SITE_NAME}/volumes/ap_conf

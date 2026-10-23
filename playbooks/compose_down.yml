@@ -1,12 +1,12 @@
 - name:  "Bring compose project, {{ site.id }}, down"
   ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} down
   environment:
-    DB_USER: "{{ site.database.user }}"
-    DB_PASSWORD: "{{ site.database.user_password }}"
-    DB_NAME: "{{ site.database.name }}"
-    DB_ROOT_PASSWORD: "{{ site.database.root_password }}"
-    MYSQL_USER_UID: "{{mysql_user_info.uid}}"
-    MYSQL_USER_GID: "{{mysql_user_info.group}}"
+    DB_USER: "{{ site.database.user | default('')}}"
+    DB_PASSWORD: "{{ site.database.user_password | default('') }}"
+    DB_NAME: "{{ site.database.name | default('')}}"
+    DB_ROOT_PASSWORD: "{{ site.database.root_password | default('')}}"
+    MYSQL_USER_UID: "{{mysql_user_info.uid | default('')}}"
+    MYSQL_USER_GID: "{{mysql_user_info.group | default('')}}"
     SITE_NAME: "{{ site.id }}"
     LOCAL_PORT: "{{ site.port }}"
     WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}"

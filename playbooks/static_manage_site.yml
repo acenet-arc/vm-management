@@ -2,6 +2,10 @@
   ansible.builtin.debug:
     msg: "Managing {{ site.id }}"
 
+- name: "Set compose file to docker-compose-wp.yml"
+  ansible.builtin.set_fact:
+    compose_file: "{{ container_base }}/docker-compose-static.yml"
+    
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: restic_backup_site.yml
@@ -11,3 +15,34 @@
   ansible.builtin.include_tasks:
     file: restore_site_from_backup_if_needed.yml
   when: site.backup is defined
+
+- name: "Make site directories as needed"
+  ansible.builtin.include_tasks:
+    file: make_site_directories_as_needed.yml
+  vars:
+    make_db_volume: false
+
+- name: "Compose down if supporting files changed"
+  ansible.builtin.include_tasks:
+    file: compose_down.yml
+  when: copy_static_supporting_files.changed
+    
+- name: "Bring compose project up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml
+
+#NOTE: need to do this after had compose up at least once to populate
+#empty ap_conf volume
+- name: "Setup SSL for {{ site.id }} container"
+  ansible.builtin.include_tasks:
+    file: add_ssl_to_container.yml
+
+#NOTE: add_ssl_to_container will required down/up if changed
+- name: "Compose down if SSL added"
+  ansible.builtin.include_tasks:
+    file: compose_down.yml
+  when: need_compose_cycle
+
+- name: "Bring compose project up for {{ site.id }} if needed"
+  ansible.builtin.include_tasks:
+    file: compose_up_if_needed.yml

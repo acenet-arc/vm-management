@@ -7,11 +7,11 @@
     root_path: "{{extra_dir.path[:-1]}}"
   when: extra_dir.path[-1]=="/"
 
-- name: "Set dir_name from site.root"
+- name: "Set dir_name from"
   ansible.builtin.set_fact:
     dir_name: "{{root_path|basename}}"
 
-- name: "Set dir_name from site.root"
+- name: "Set dir_name from"
   ansible.builtin.set_fact:
     base_path: "{{root_path|dirname}}"
 

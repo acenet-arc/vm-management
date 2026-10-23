@@ -3,12 +3,12 @@
 - name: "Set site_path from site.id"
   ansible.builtin.set_fact:
     site_path: "{{ container_base }}/{{site.id}}"
-  when: site.root is not defined
+  when: site.static_settings.root is not defined
   
-- name: "Set site_path from site.root"
+- name: "Set site_path from site.static_settings.root"
   ansible.builtin.set_fact:
-    site_path: "{{ site.root }}"
-  when: site.root is defined
+    site_path: "{{ site.static_settings.root }}"
+  when: site.static_settings.root is defined
 
 - name: "Check if site directory exists"
   ansible.builtin.stat:
