@@ -22,20 +22,6 @@
     - name: Distribution major version
       debug: msg="{{ ansible_facts['distribution_major_version'] }}"
     
-    - name: "Ensure group 'mysql' exists"
-      ansible.builtin.group:
-        name: mysql
-        state: present
-    
-    - name: "Ensure we have mysql user"
-      ansible.builtin.user:
-        name: mysql
-        group: mysql
-        state: present
-        system: true
-        create_home: false
-      register: mysql_user_info
-    
     - name: "Ensure restic is installed and updated"
       ansible.builtin.include_tasks:
         file: restic_install_update.yml
@@ -63,6 +49,22 @@
     - name: "Host has WordPress site?"
       ansible.builtin.debug:
         msg: "has_wp_site={{ has_wp_site }}"
+    
+    - name: "Ensure group 'mysql' exists"
+      ansible.builtin.group:
+        name: mysql
+        state: present
+      when: has_wp_site or has_om_site
+      
+    - name: "Ensure we have mysql user"
+      ansible.builtin.user:
+        name: mysql
+        group: mysql
+        state: present
+        system: true
+        create_home: false
+      register: mysql_user_info
+      when: has_wp_site or has_om_site
     
     - name: "Create {{ container_base }} as needed"
       ansible.builtin.file:
