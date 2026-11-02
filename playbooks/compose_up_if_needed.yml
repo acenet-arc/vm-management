@@ -29,6 +29,7 @@
     DB_ROOT_PASSWORD: "{{ site.database.root_password | default('')}}"
     MYSQL_USER_UID: "{{mysql_user_info.uid | default('')}}"
     MYSQL_USER_GID: "{{mysql_user_info.group | default('')}}"
+    SITE_ROOT: "{{site_root}}"
     SITE_NAME: "{{ site.id }}"
     LOCAL_PORT: "{{ site.port }}"
     WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}"

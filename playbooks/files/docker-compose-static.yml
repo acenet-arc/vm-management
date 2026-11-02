@@ -16,7 +16,7 @@ volumes:
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: ./${SITE_NAME}/volumes/web
+      device: ${SITE_ROOT}
   ap_confv:
     driver: local
     driver_opts:

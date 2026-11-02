@@ -8,6 +8,7 @@
     MYSQL_USER_UID: "{{mysql_user_info.uid | default('')}}"
     MYSQL_USER_GID: "{{mysql_user_info.group | default('')}}"
     SITE_NAME: "{{ site.id }}"
+    SITE_ROOT: "{{site_root}}"
     LOCAL_PORT: "{{ site.port }}"
     WORDPRESS_DISSALLOW_FILE_MODS: "{{ site.wp_settings.config.dissallow_file_mods | default(wp_defaults.dissallow_file_mods) }}"
     WORDPRESS_AUTO_UPDATE_CORE: "{{ site.wp_settings.config.auto_update_core | default(wp_defaults.auto_update_core) }}"

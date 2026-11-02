@@ -6,6 +6,10 @@
   ansible.builtin.set_fact:
     compose_file: "{{ container_base }}/docker-compose-om.yml"
 
+- name: "Set site_root variable"
+  ansible.builtin.set_fact:
+    site_root: "./{{site.id}}/volumes/web"
+
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
     file: restic_backup_site.yml
