@@ -102,6 +102,12 @@
 #    file: compose_down.yml
 #  when: need_compose_cycle
 
+- name: "Update containers"
+  ansible.builtin.include_tasks:
+    file: compose_update.yml
+  vars:
+    services: "web"
+
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml

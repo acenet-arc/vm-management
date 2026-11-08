@@ -25,7 +25,7 @@
     file: make_site_directories_as_needed.yml
   vars:
     make_db_volume: true
-    site_root: {{ container_base }}/{{ site.id }}/volumes/web
+    site_root: "{{ container_base }}/{{ site.id }}/volumes/web"
     web_root_owner: "www-data"
     web_root_mode: "0770"
     make_web_server_config_volume: true

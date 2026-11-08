@@ -3,12 +3,12 @@
   args:
     chdir: "{{container_base}}"
   environment:
-    DB_USER: "{{ site.database.user }}"
-    DB_PASSWORD: "{{ site.database.user_password }}"
-    DB_NAME: "{{ site.database.name }}"
-    DB_ROOT_PASSWORD: "{{ site.database.root_password }}"
-    MYSQL_USER_UID: "{{mysql_user_info.uid}}"
-    MYSQL_USER_GID: "{{mysql_user_info.group}}"
+    DB_USER: "{{ site.database.user|default('')}}"
+    DB_PASSWORD: "{{ site.database.user_password|default('')}}"
+    DB_NAME: "{{ site.database.name|default('')}}"
+    DB_ROOT_PASSWORD: "{{ site.database.root_password|default('')}}"
+    MYSQL_USER_UID: "{{mysql_user_info.uid|default('')}}"
+    MYSQL_USER_GID: "{{mysql_user_info.group|default('')}}"
     SITE_NAME: "{{ site.id }}"
     SITE_ROOT: "{{site_root}}"
     LOCAL_PORT: "{{ site.port }}"
@@ -18,15 +18,15 @@
 
 - name:  "Restart containers as needed for compose project {{ site.id }}"
   ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up -d
-    args:
+  args:
     chdir: "{{container_base}}"
   environment:
-    DB_USER: "{{ site.database.user }}"
-    DB_PASSWORD: "{{ site.database.user_password }}"
-    DB_NAME: "{{ site.database.name }}"
-    DB_ROOT_PASSWORD: "{{ site.database.root_password }}"
-    MYSQL_USER_UID: "{{mysql_user_info.uid}}"
-    MYSQL_USER_GID: "{{mysql_user_info.group}}"
+    DB_USER: "{{ site.database.user|default('')}}"
+    DB_PASSWORD: "{{ site.database.user_password|default('')}}"
+    DB_NAME: "{{ site.database.name|default('')}}"
+    DB_ROOT_PASSWORD: "{{ site.database.root_password|default('')}}"
+    MYSQL_USER_UID: "{{mysql_user_info.uid|default('')}}"
+    MYSQL_USER_GID: "{{mysql_user_info.group|default('')}}"
     SITE_NAME: "{{ site.id }}"
     SITE_ROOT: "{{site_root}}"
     LOCAL_PORT: "{{ site.port }}"
