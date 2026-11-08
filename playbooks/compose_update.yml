@@ -1,5 +1,7 @@
 - name:  "Get new container images for compose project {{ site.id }}"
   ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} pull {{ services }}
+  args:
+    chdir: "{{container_base}}"
   environment:
     DB_USER: "{{ site.database.user }}"
     DB_PASSWORD: "{{ site.database.user_password }}"
@@ -16,6 +18,8 @@
 
 - name:  "Restart containers as needed for compose project {{ site.id }}"
   ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up -d
+    args:
+    chdir: "{{container_base}}"
   environment:
     DB_USER: "{{ site.database.user }}"
     DB_PASSWORD: "{{ site.database.user_password }}"

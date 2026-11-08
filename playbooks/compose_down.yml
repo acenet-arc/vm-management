@@ -1,5 +1,7 @@
 - name:  "Bring compose project, {{ site.id }}, down"
-  ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} down
+  ansible.builtin.command:
+    cmd: docker compose -f {{ compose_file }} -p {{ site.id }} down
+    chdir: "{{container_base}}"
   environment:
     DB_USER: "{{ site.database.user | default('')}}"
     DB_PASSWORD: "{{ site.database.user_password | default('') }}"

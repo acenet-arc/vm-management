@@ -1,0 +1,25 @@
+server{
+  {% if site.static_settings.network_mode is defined %}
+    {% if site.static_settings.network_mode != 'host' %}
+  listen 80;
+    {% else %}
+  listen {{site.port|default('80')}};
+    {% endif %}
+  {% else %}
+  listen 80;
+  {% endif %}
+  root /usr/share/nginx/html;
+  index {{site.static_settings.index|default('index.html index.htm')}};
+  
+{% if locations is defined %}
+  {% for key, value in locations.items() %}
+    {% if key == "slash" %}
+  location / {
+    {% else %}
+  location /{{ key }} {
+    {% endif%}
+{{ value|indent(4, first=True) }}
+  }
+  {% endfor %}
+{% endif %}
+}

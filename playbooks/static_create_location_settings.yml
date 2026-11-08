@@ -1,0 +1,59 @@
+---
+
+- ansible.builtin.debug:
+    msg: "location={{location}}"
+
+- ansible.builtin.set_fact:
+    path: "{{ location['path'] }}"
+  
+- ansible.builtin.set_fact:
+    path: "slash"
+  when: location["path"]=="slash" or location["path"]=="/"
+
+- ansible.builtin.set_fact:
+    path_literal: "{{ path }}"
+
+- ansible.builtin.set_fact:
+    path_literal: "/"
+  when: path=="slash"
+
+- name: "Initialize autoindex to false"
+  ansible.builtin.set_fact:
+    autoindex: false
+
+- name: "autoindex in site?"
+  ansible.builtin.set_fact:
+    autoindex: "{{site['autoindex']}}"
+  when: site["autoindex"] is defined
+
+- name: "autoindex in location?"
+  ansible.builtin.set_fact:
+    autoindex: "{{location['autoindex']}}"
+  when: location["autoindex"] is defined
+
+- name: "Set default nginx location settings"
+  ansible.builtin.set_fact:
+    settings: "try_files $uri $uri/ =404;"
+  
+- name: "Disable autoindex"
+  ansible.builtin.set_fact:
+    settings: "{{settings+'\nautoindex off;'}}"
+  when: not autoindex
+  
+- name: "Enable autoindex"
+  ansible.builtin.set_fact:
+    settings: "{{settings+'\nautoindex on;'}}"
+  when: autoindex
+
+- name: "Both settings and autoindex set"
+  ansible.builtin.fail:
+    msg: "autoindex setting would be overwritten with given settings block"
+  when: location["settings"] is defined and autoindex
+
+- name: "Overriding settings with location settings"
+  ansible.builtin.set_fact:
+    settings: "{{location['settings']}}"
+  when: location["settings"] is defined
+
+- ansible.builtin.set_fact:
+    locations: "{{ locations|default({})| combine({path:settings}) }}"

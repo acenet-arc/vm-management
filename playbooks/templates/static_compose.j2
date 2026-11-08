@@ -1,0 +1,29 @@
+services:
+  
+  web:
+    image: nginx
+    restart: always
+    network_mode: {{site.static_settings.network_mode|default('bridge')}}
+    {% if site.static_settings.network_mode is defined %}
+      {% if site.static_settings.network_mode != 'host' %}
+    ports:
+      - {{site.port}}:80
+      {% endif %}
+    {% else %}
+    ports:
+      - {{site.port}}:80
+    {% endif %}
+    volumes:
+      - type: bind
+        source: {{site.static_settings.root|default(container_base+site.id+'/volumes/web')}}
+        target: /usr/share/nginx/html
+      - type: bind
+        source: ./{{site.id}}/volumes/default.conf
+        target: /etc/nginx/conf.d/default.conf
+      {% if site.static_settings.mounts is defined %}
+      {% for mount in site.static_settings.mounts %}
+      - type: bind
+        source: {{mount.source}}
+        target: {{mount.target}}
+      {% endfor %}
+      {% endif %}

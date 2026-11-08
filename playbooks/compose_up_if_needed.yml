@@ -1,5 +1,7 @@
 - name: "Get compose statuses"
   ansible.builtin.command: docker compose -f {{ compose_file }} ls --format json --filter name="^{{ site.id }}$"
+  args:
+    chdir: "{{container_base}}"
   register: compose_ls_result
   changed_when: false
 
@@ -15,13 +17,15 @@
   ansible.builtin.set_fact:
     needs_up: true
 
-- name: "If got status 'running(2)' we don't need compose up"
+- name: "If got status '{{ok_status}}' we don't need compose up"
   ansible.builtin.set_fact:
     needs_up: false
-  when: compose_status|length>0 and compose_status[0].Status=='running(2)'
+  when: compose_status|length>0 and compose_status[0].Status==ok_status
 
 - name:  "Bring compose project, {{ site.id }}, up if not already up"
-  ansible.builtin.command: docker compose -f {{ compose_file }} -p {{ site.id }} up --build -d
+  ansible.builtin.command:
+    cmd: docker compose -f {{ compose_file }} -p {{ site.id }} up --build -d
+    chdir: "{{container_base}}"
   environment:
     DB_USER: "{{ site.database.user | default('')}}"
     DB_PASSWORD: "{{ site.database.user_password | default('') }}"

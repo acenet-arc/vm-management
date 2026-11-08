@@ -16,19 +16,20 @@
 
 - name: "Create web root volume for {{ site.id }} as needed"
   ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/web"
+    path: "{{site_root}}"
     state: directory
-    owner: "www-data"
-    group: "www-data"
-    mode: '0770'
+    owner: "{{web_root_owner}}"
+    group: "{{web_root_owner}}"
+    mode: "{{web_root_mode}}"
 
-- name: "Create apache config volume for {{ site.id }} as needed"
+- name: "Create web server config volume for {{ site.id }} as needed"
   ansible.builtin.file:
     path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf"
     state: directory
     owner: "root"
     group: "root"
     mode: '0770'
+  when: make_web_server_config_volume
 
 - name: "Create database volume directories for {{ site.id }} as needed"
   ansible.builtin.file:

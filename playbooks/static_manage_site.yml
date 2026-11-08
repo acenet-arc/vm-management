@@ -2,13 +2,14 @@
   ansible.builtin.debug:
     msg: "Managing {{ site.id }}"
 
-- name: "Set compose file to docker-compose-wp.yml"
+- name: "Set default site_root variable"
   ansible.builtin.set_fact:
-    compose_file: "{{ container_base }}/docker-compose-static.yml"
-
+    site_root: "{{ container_base }}/{{site.id}}/volumes/web"
+    
 - name: "Set site_root variable"
   ansible.builtin.set_fact:
     site_root: "{{site.static_settings.root}}"
+  when: site.static_settings.root is defined
     
 - name: "Backup site {{ site.id }}"
   ansible.builtin.include_tasks:
@@ -25,28 +26,84 @@
     file: make_site_directories_as_needed.yml
   vars:
     make_db_volume: false
+    web_root_owner: "{{ ansible_user }}"
+    web_root_mode: "0775"
+    make_web_server_config_volume: false
+
+- name: "Set static site default locations"
+  ansible.builtin.set_fact:
+    location_settings: [{"path":"/"}]
+  
+- name: "Use static_settings specified locations"
+  ansible.builtin.set_fact:
+    location_settings: "{{site.static_settings.locations}}"
+  when: site.static_settings.locations is defined
+    
+#TODO: need to create locatoin settings for use with 
+# static_nginx_site_conf.j2 template similar to is done on the proxy
+# role with proxy_vhosts.j2 but this time for a non-proxy nginx
+# webserver running in a container for the static site to work
+# behind a proxy
+- name: "Creating locations settings for static site {{site.id}}"
+  ansible.builtin.include_tasks:
+    file: static_create_location_settings.yml
+  when: location_settings is defined
+  loop: "{{location_settings}}"
+  loop_control:
+    loop_var: location
+    
+- name: "Create nginx default.conf file for {{site.id}}"
+  ansible.builtin.template:
+    src: static_nginx_site_conf.j2
+    dest: "{{ container_base }}/{{site.id}}/volumes/default.conf"
+    owner:  "{{ ansible_user }}"
+    group:  "{{ ansible_user }}"
+    trim_blocks: true
+    lstrip_blocks: true
+  register: create_default_conf
+
+- name: "Create compose file for {{site.id}}"
+  ansible.builtin.template:
+    src: static_compose.j2
+    dest: "{{ container_base }}/docker-compose-{{site.id}}.yml"
+    owner:  "{{ ansible_user }}"
+    group:  "{{ ansible_user }}"
+    trim_blocks: true
+    lstrip_blocks: true
+  register: create_compose_file
+
+- name: "Set compose file for {{site.id}}"
+  ansible.builtin.set_fact:
+    compose_file: "{{ container_base }}/docker-compose-{{site.id}}.yml"
 
 - name: "Compose down if supporting files changed"
   ansible.builtin.include_tasks:
     file: compose_down.yml
-  when: copy_static_supporting_files.changed
+  when: create_default_conf.changed or create_compose_file.changed
     
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
+  vars:
+    ok_status: "running(1)"
 
+#TODO: static sites are going to use nginx, so will need to recreate this
+#for nginx server, omit for now
 #NOTE: need to do this after had compose up at least once to populate
 #empty ap_conf volume
-- name: "Setup SSL for {{ site.id }} container"
-  ansible.builtin.include_tasks:
-    file: add_ssl_to_container.yml
+#- name: "Setup SSL for {{ site.id }} container"
+#  ansible.builtin.include_tasks:
+#    file: add_ssl_to_container.yml
 
+#TODO: uncomment this block when above SSl setup
 #NOTE: add_ssl_to_container will required down/up if changed
-- name: "Compose down if SSL added"
-  ansible.builtin.include_tasks:
-    file: compose_down.yml
-  when: need_compose_cycle
+#- name: "Compose down if SSL added"
+#  ansible.builtin.include_tasks:
+#    file: compose_down.yml
+#  when: need_compose_cycle
 
 - name: "Bring compose project up for {{ site.id }} if needed"
   ansible.builtin.include_tasks:
     file: compose_up_if_needed.yml
+  vars:
+    ok_status: "running(1)"
