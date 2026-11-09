@@ -1,16 +1,18 @@
 server{
   {% if site.static_settings.network_mode is defined %}
     {% if site.static_settings.network_mode != 'host' %}
-  listen 80;
+  listen 443 ssl;
     {% else %}
-  listen {{site.port|default('80')}};
+  listen {{site.port|default('80')}} ssl;
     {% endif %}
   {% else %}
-  listen 80;
+  listen 443 ssl;
   {% endif %}
   root /usr/share/nginx/html;
   index {{site.static_settings.index|default('index.html index.htm')}};
-  
+  ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+  ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+
 {% if locations is defined %}
   {% for key, value in locations.items() %}
     {% if key == "slash" %}

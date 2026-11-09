@@ -42,7 +42,7 @@
     ok_status: "running(2)"
 
 #NOTE: need to do this after had compose up at least once to populate
-#empty ap_conf volume
+#empty web_conf volume
 - name: "Setup SSL for {{ site.id }} container"
   ansible.builtin.include_tasks:
     file: add_ssl_to_container.yml

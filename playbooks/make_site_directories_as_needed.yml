@@ -24,7 +24,7 @@
 
 - name: "Create web server config volume for {{ site.id }} as needed"
   ansible.builtin.file:
-    path: "{{ container_base }}/{{ site.id }}/volumes/ap_conf"
+    path: "{{ container_base }}/{{ site.id }}/volumes/web_conf"
     state: directory
     owner: "root"
     group: "root"

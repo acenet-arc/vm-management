@@ -15,7 +15,7 @@ services:
       OMEKAS_DB_NAME: ${DB_NAME}
     volumes:
       - webv:/var/www/html
-      - ap_confv:/etc/apache2
+      - web_confv:/etc/apache2
     depends_on:
       db:
         condition: service_healthy
@@ -43,12 +43,12 @@ volumes:
       type: 'none'
       o: 'bind'
       device: ./${SITE_NAME}/volumes/web
-  ap_confv:
+  web_confv:
     driver: local
     driver_opts:
       type: 'none'
       o: 'bind'
-      device: ./${SITE_NAME}/volumes/ap_conf
+      device: ./${SITE_NAME}/volumes/web_conf
   dbv:
     driver: local
     driver_opts:

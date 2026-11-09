@@ -7,19 +7,25 @@ services:
     {% if site.static_settings.network_mode is defined %}
       {% if site.static_settings.network_mode != 'host' %}
     ports:
-      - {{site.port}}:80
+      - {{site.port}}:443
       {% endif %}
     {% else %}
     ports:
-      - {{site.port}}:80
+      - {{site.port}}:443
     {% endif %}
     volumes:
       - type: bind
         source: {{site.static_settings.root|default(container_base+site.id+'/volumes/web')}}
         target: /usr/share/nginx/html
       - type: bind
-        source: ./{{site.id}}/volumes/default.conf
+        source: ./{{site.id}}/volumes/web_conf/default.conf
         target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: ./{{site.id}}/volumes/web_conf/nginx-selfsigned.crt
+        target: /etc/ssl/certs/nginx-selfsigned.crt
+      - type: bind
+        source: ./{{site.id}}/volumes/web_conf/nginx-selfsigned.key
+        target: /etc/ssl/private/nginx-selfsigned.key
       {% if site.static_settings.mounts is defined %}
       {% for mount in site.static_settings.mounts %}
       - type: bind
